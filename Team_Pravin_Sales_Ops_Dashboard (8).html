@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Pravin — Sales Ops Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0F1C; --panel:#111A2C; --panel-2:#0D1524; --line:#1E2A42;
+    --amber:#F2A93B; --amber-dim:#8A6423; --safe:#33C48D; --safe-dim:#12352A;
+    --danger:#FF6B5D; --danger-dim:#3A1A17; --teal:#4FD1D9; --violet:#B18CFF;
+    --text:#EDEFF5; --muted:#8C95AA; --muted-2:#5C6579;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--ink); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  body{padding:0 0 64px 0; background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(242,169,59,0.06), transparent),
+      radial-gradient(1000px 500px at 100% 0%, rgba(79,209,217,0.05), transparent), var(--ink);}
+  .wrap{max-width:1220px; margin:0 auto; padding:0 20px;}
+  .mono{font-family:'JetBrains Mono',monospace;} .disp{font-family:'Rajdhani',sans-serif;}
+
+  header{border-bottom:1px solid var(--line); padding:18px 0 0 0; position:sticky; top:0; z-index:50;
+    background:rgba(10,15,28,0.94); backdrop-filter:blur(10px);}
+  .hdr-row{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:14px;}
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand .dot{width:10px;height:10px;border-radius:50%; background:var(--amber); box-shadow:0 0 0 4px rgba(242,169,59,0.15); animation:pulse 2s infinite;}
+  .brand h1{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:21px; letter-spacing:0.5px; text-transform:uppercase;}
+  .brand small{display:block; color:var(--muted); font-size:11px; letter-spacing:1.2px; text-transform:uppercase; margin-top:2px;}
+  .hdr-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .pill{font-size:11px; padding:6px 12px; border-radius:20px; border:1px solid var(--line); color:var(--muted); display:flex; align-items:center; gap:6px;}
+  .pill.live{color:var(--safe); border-color:rgba(51,196,141,0.35); background:rgba(51,196,141,0.06);}
+  .pill.cached{color:var(--amber); border-color:rgba(242,169,59,0.35); background:rgba(242,169,59,0.06);}
+  .pill.busy{color:var(--teal); border-color:rgba(79,209,217,0.35); background:rgba(79,209,217,0.06);}
+  .btn{background:var(--amber); color:#20140A; border:none; font-weight:700; font-size:12px; padding:9px 16px; border-radius:8px; cursor:pointer; letter-spacing:0.3px; text-transform:uppercase;}
+  .btn:hover{filter:brightness(1.08);}
+  .btn.ghost{background:transparent; color:var(--text); border:1px solid var(--line);}
+  .btn.ghost:hover{border-color:var(--amber);}
+  .btn.sm{padding:6px 12px; font-size:10.5px;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
+
+  /* tab nav */
+  .tabnav{display:flex; gap:4px; overflow-x:auto; padding-bottom:0;}
+  .tabnav button{background:transparent; border:none; color:var(--muted); font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13px; letter-spacing:0.4px; text-transform:uppercase; padding:11px 16px; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap;}
+  .tabnav button:hover{color:var(--text);}
+  .tabnav button.active{color:var(--amber); border-bottom-color:var(--amber);}
+  .view{display:none;} .view.active{display:block;}
+
+  .ticker{display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; margin:24px 0;}
+  .tick{background:var(--panel); padding:16px 14px;}
+  .tick .lbl{font-size:10px; letter-spacing:1.1px; text-transform:uppercase; color:var(--muted); margin-bottom:7px;}
+  .tick .val{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:27px; line-height:1;}
+  .tick .sub{font-size:10.5px; color:var(--muted-2); margin-top:5px;}
+  .tick .val.amber{color:var(--amber);} .tick .val.safe{color:var(--safe);} .tick .val.teal{color:var(--teal);} .tick .val.danger{color:var(--danger);} .tick .val.violet{color:var(--violet);}
+
+  .section{margin:36px 0 0 0;}
+  .section-hd{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px;}
+  .section-hd h2{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:0.5px;}
+  .section-hd h2 .n{color:var(--amber); margin-right:8px;}
+  .section-hd p{color:var(--muted); font-size:12px;}
+
+  .insights{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+  .icard{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:15px; border-left:3px solid var(--amber);}
+  .icard.g{border-left-color:var(--safe);} .icard.r{border-left-color:var(--danger);} .icard.t{border-left-color:var(--teal);} .icard.v{border-left-color:var(--violet);}
+  .icard .k{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:6px;}
+  .icard .v2{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px;}
+  .icard .v2 small{color:var(--muted); font-weight:500; font-size:11.5px;}
+
+  .board{background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  thead th{text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.7px; color:var(--muted); padding:11px 13px; border-bottom:1px solid var(--line); white-space:nowrap; cursor:pointer; user-select:none;}
+  thead th:hover{color:var(--amber);}
+  tbody td{padding:11px 13px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(242,169,59,0.04);}
+  .rank{display:inline-flex; align-items:center; justify-content:center; width:25px; height:25px; border-radius:7px; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:12.5px; background:var(--panel-2); border:1px solid var(--line);}
+  .rank.r1{background:rgba(242,169,59,0.15); border-color:var(--amber); color:var(--amber);}
+  .rank.r2{background:rgba(140,149,170,0.15); border-color:#8C95AA; color:#D6DAE4;}
+  .rank.r3{background:rgba(255,107,93,0.10); border-color:#8a5a30; color:#e0a870;}
+  .name{font-weight:600;} .name-sub{color:var(--muted-2); font-size:10.5px;}
+  .zone{display:inline-flex; align-items:center; gap:6px; font-size:10.5px; padding:4px 9px; border-radius:20px; font-weight:600;}
+  .zone .d{width:6px;height:6px;border-radius:50%;}
+  .zone.safe{background:var(--safe-dim); color:var(--safe);} .zone.safe .d{background:var(--safe);}
+  .zone.danger{background:var(--danger-dim); color:var(--danger);} .zone.danger .d{background:var(--danger);}
+  .bar-cell{display:flex; align-items:center; gap:8px;}
+  .bar-track{width:64px; height:5px; background:var(--panel-2); border-radius:3px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:3px;}
+  .mono-cell{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);}
+  .ach{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13.5px;}
+
+  .charts{display:grid; grid-template-columns:1.4fr 1fr; gap:14px;}
+  .chart-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .chart-card h3{font-family:'Rajdhani',sans-serif; font-size:13.5px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; margin-bottom:3px;}
+  .chart-card .cap{color:var(--muted); font-size:11px; margin-bottom:12px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px;}
+
+  /* counselor picker */
+  .pillrow{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;}
+  .cpill{background:var(--panel); border:1px solid var(--line); color:var(--muted); font-size:12px; padding:8px 14px; border-radius:20px; cursor:pointer; font-weight:600;}
+  .cpill:hover{border-color:var(--amber); color:var(--text);}
+  .cpill.active{background:rgba(242,169,59,0.12); border-color:var(--amber); color:var(--amber);}
+
+  .chipgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-bottom:18px;}
+  .chip{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px 14px;}
+  .chip .k{font-size:9.5px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted-2); margin-bottom:5px;}
+  .chip .v{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color:var(--text);}
+  .metric-group{margin-bottom:22px;}
+  .metric-group h4{font-family:'Rajdhani',sans-serif; font-size:12.5px; text-transform:uppercase; letter-spacing:0.6px; color:var(--teal); margin-bottom:8px; font-weight:700;}
+
+  .empty{color:var(--muted-2); font-size:12.5px; padding:30px; text-align:center;}
+  .loading{color:var(--muted); font-size:12.5px; padding:20px; text-align:center;}
+
+  .connect-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+  .cx-card{background:var(--panel); border:1px dashed var(--line); border-radius:12px; padding:16px;}
+  .cx-card h4{font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:700; margin-bottom:4px;}
+  .cx-card p{color:var(--muted-2); font-size:11px; margin-bottom:10px;}
+  .cx-card input{width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); font-size:12px; padding:8px 10px; border-radius:7px; margin-bottom:8px; font-family:'JetBrains Mono',monospace;}
+  .cx-card .status{font-size:10.5px; margin-top:8px; color:var(--muted-2);}
+  .cx-card .status.ok{color:var(--safe);} .cx-card .status.err{color:var(--danger);}
+
+  footer{margin-top:60px; text-align:center; color:var(--muted-2); font-size:11px;}
+
+  @media(max-width:900px){
+    .ticker{grid-template-columns:repeat(2,1fr);} .insights{grid-template-columns:repeat(2,1fr);}
+    .charts{grid-template-columns:1fr;} .row2{grid-template-columns:1fr;} .connect-grid{grid-template-columns:1fr;}
+    table{font-size:11px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hdr-row">
+    <div class="brand">
+      <div class="dot"></div>
+      <div><h1>Team Pravin — Sales Ops Command Center</h1><small id="dateLine">Loading…</small></div>
+    </div>
+    <div class="hdr-right">
+      <span class="pill" id="syncPill">● checking…</span>
+      <span class="pill" id="lastSync">last sync: —</span>
+      <button class="btn ghost" onclick="syncEverything()">↻ Sync Now</button>
+    </div>
+  </div>
+  <div class="wrap tabnav" id="tabnav">
+    <button data-view="overview" class="active">Overview</button>
+    <button data-view="leaderboard">Leaderboard</button>
+    <button data-view="deepdive">Counselor Deep-Dive</button>
+    <button data-view="hourly">Hourly Trend</button>
+    <button data-view="followups">Followups</button>
+    <button data-view="connect">Connect More</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- OVERVIEW -->
+  <div class="view active" id="view-overview">
+    <div class="ticker" id="ticker"></div>
+    <div class="section">
+      <div class="section-hd"><h2><span class="n">01</span>Live Read</h2><p>Auto-generated from IB Average sheet</p></div>
+      <div class="insights" id="insights"></div>
+    </div>
+    <div class="section">
+      <div class="section-hd"><h2><span class="n">02</span>Performance Charts</h2><p>Ranked achievement, zone split, talktime, call efficiency</p></div>
+      <div class="charts">
+        <div class="chart-card"><h3>Achievement % — Ranked</h3><div class="cap">Progress vs per-day target</div><div id="achChart"></div></div>
+        <div class="chart-card"><h3>Zone Split</h3><div class="cap">Safe vs Danger Zone headcount</div><div id="zoneDonut"></div></div>
+      </div>
+      <div class="row2">
+        <div class="chart-card"><h3>Avg Talktime vs Team Avg</h3><div class="cap">hh:mm:ss per counselor</div><div id="ttChart"></div></div>
+        <div class="chart-card"><h3>Effective vs Unique Connected</h3><div class="cap">Call efficiency comparison</div><div id="callsChart"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="view" id="view-leaderboard">
+    <div class="section" style="margin-top:24px;">
+      <div class="section-hd"><h2><span class="n">—</span>IB Counselor Leaderboard</h2><p>Click a column to sort · <span id="rowCount">–</span> counselors</p></div>
+      <div class="board">
+        <table>
+          <thead><tr>
+            <th data-k="rank">Rank</th><th data-k="name">Counselor</th><th data-k="zone">Zone</th>
+            <th data-k="activeDays">Active&nbsp;Days</th><th data-k="drr">DRR</th><th data-k="avgCC">Avg&nbsp;CC</th>
+            <th data-k="effCalls">Eff.&nbsp;Calls</th><th data-k="uniqueConn">Unique&nbsp;Conn.</th>
+            <th data-k="effVsConn">Eff/Conn%</th><th data-k="avgTT">Avg&nbsp;TT</th><th data-k="target">Target</th>
+            <th data-k="achievement">Achievement</th><th data-k="c2conv">C2&nbsp;Conv%</th><th data-k="c2vprpDiv">Divided&nbsp;Sales</th>
+          </tr></thead>
+          <tbody id="boardBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEEP DIVE -->
+  <div class="view" id="view-deepdive">
+    <div class="section" style="margin-top:24px;">
+      <div class="section-hd"><h2><span class="n">—</span>Counselor Deep-Dive</h2><p>Date-wise, MTD total &amp; average — pick a counselor</p></div>
+      <div class="pillrow" id="counselorPicker"></div>
+      <div id="deepdiveBody"><div class="loading">Select a counselor to load their detailed live data…</div></div>
+    </div>
+  </div>
+
+  <!-- HOURLY -->
+  <div class="view" id="view-hourly">
+    <div class="section" style="margin-top:24px;">
+      <div class="section-hd">
+        <h2><span class="n">—</span>Hourly Call Trend</h2>
+        <p>From Exotel &amp; Ameyo Dump · Team Pravin calls only</p>
+      </div>
+      <div class="icard r" style="margin-bottom:16px;">
+        <div class="k">Data Limitation — Read This First</div>
+        <div class="v2" style="font-weight:500; font-size:13px; line-height:1.6;">
+          The Exotel dump has thousands of rows for the month, but Claude's read-only sheet access only returns the <b>first 100 rows</b> (Aug 1, 8:00–8:44 AM) — and only <b>10 of those</b> are Team Pravin calls, the rest belong to other teams. That's too small a sample for a real hourly trend, so nothing fake has been built from it.
+          <br><br>
+          <b>To get a genuine hourly trend</b>, either: (1) click "Try Live Browser Fetch" below — it may work depending on your browser/network, or (2) export the Exotel &amp; Ameyo Dump tab as CSV and share it in chat — Claude will build the full hourly breakdown from real data.
+        </div>
+      </div>
+      <div id="hourlyStatus" class="loading">Live browser fetch of the full dump — works in some browsers, blocked in others (sandboxed environments often block this).</div>
+      <button class="btn" style="margin:14px 0;" onclick="loadHourly()">⚡ Try Live Browser Fetch</button>
+      <div class="insights" id="hourlyInsights" style="margin-bottom:16px;"></div>
+      <div class="chart-card"><h3>Talktime &amp; Connected Calls by Hour</h3><div class="cap">Amber bars = talktime (min) · teal line = connected calls · only renders after a successful live fetch</div><div id="hourlyChart"></div></div>
+      <div class="board" style="margin-top:14px;"><table id="hourlyTable"></table></div>
+
+      <div class="metric-group" style="margin-top:24px;">
+        <h4>Real Sample — Aug 1, 8:00–8:44 AM (10 Team Pravin calls found in the 100-row window)</h4>
+        <div class="board"><table>
+          <thead><tr><th>Time</th><th>Counselor</th><th>Talktime</th></tr></thead>
+          <tbody id="sampleHourBody"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOLLOWUPS -->
+  <div class="view" id="view-followups">
+    <div class="section" style="margin-top:24px;">
+      <div class="section-hd"><h2><span class="n">—</span>Followup Tracker</h2><p>Overdues, today's followups &amp; upcoming funnel</p></div>
+      <div id="followupsBody"><div class="loading">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- CONNECT -->
+  <div class="view" id="view-connect">
+    <div class="section" style="margin-top:24px;">
+      <div class="section-hd"><h2><span class="n">—</span>Connect More Tabs</h2><p>Best-effort live fetch (may be blocked by your browser) — for guaranteed data, tell Claude the tab name and it'll bake it in directly</p></div>
+      <div class="connect-grid" id="connectGrid"></div>
+    </div>
+  </div>
+
+  <footer>Built for Team Pravin · Attempts a live pull from Google Sheets every 5 minutes (works when opened as a local file in a normal browser) with a synced snapshot as fallback if the fetch is blocked · No edits are made to the source sheet.</footer>
+</div>
+
+<script>
+const SHEET_ID = "1CXV7IuvKiGA77Ic50QDi2rUlO4p6zCSg7bGmA7lz0sE";
+const GIDS = {
+  ibAverage: "1714225254",
+  followupTracker: "1803186904",
+  mtdIvr: "441608683",
+  exotel: "931423210",
+  talktime: "43739683",
+  connected: "1083877921",
+  uniqueConnected: "926642479",
+  effective: "929268983",
+  freshConnected: "990433294",
+  freshEC: "1533467589",
+  fuConnected: "78290569",
+};
+const DATE_TABS = [
+  {key:"talktime", label:"Talktime", isTime:true, color:"#4FD1D9"},
+  {key:"connected", label:"Connected Calls", color:"#F2A93B"},
+  {key:"uniqueConnected", label:"Unique Connected", color:"#33C48D"},
+  {key:"effective", label:"Effective Calls", color:"#B18CFF"},
+  {key:"fuConnected", label:"FU Connected", color:"#FF6B5D"},
+  {key:"freshConnected", label:"Fresh Connected", color:"#F2A93B"},
+  {key:"freshEC", label:"Fresh EC", color:"#4FD1D9"},
+];
+const NAME_TO_EMAIL = {
+  "Shahla Nigar":"shahla.nigar@pw.live","Sarthak Saxena":"sarthak.saxena@pw.live","Efat Tanweer":"efat.tanweer@pw.live",
+  "Shubham Patel":"shubham.patel1@pw.live","Neha Verma":"csr196@coderootz.in","Pooja Kumari":"pooja.kumari4@pw.live",
+  "Sarika":"csr217@coderootz.in","Mahawas Zeya":"mahawas.zeya@pw.live","Paramjeet Kaur":"paramjeet.kaur@fivesdigital.com",
+  "Ankita Bera":"ankita.bera@pw.live","Gulafshan Naaz":"gulafshan.naaz@pw.live","Akash Mishra":"akash.mishra3@pw.live",
+  "Rohit Vashishth":"rohit.vashishth@pw.live","Kratika Umrao":"kratika.umrao@pw.live","Shubham Burman":"shubham.burman@pw.live",
+  "Pratik Nandan":"pratik.nandan@pw.live",
+};
+const EMAIL_TO_NAME = Object.fromEntries(Object.entries(NAME_TO_EMAIL).map(([n,e])=>[e.toLowerCase(),n]));
+const TEAM_EMAILS = new Set(Object.values(NAME_TO_EMAIL).map(e=>e.toLowerCase()));
+let BUNDLE = {"dates": ["1-Aug", "2-Aug", "3-Aug", "4-Aug", "5-Aug", "6-Aug", "7-Aug", "8-Aug", "9-Aug", "10-Aug", "11-Aug", "12-Aug", "13-Aug", "14-Aug", "15-Aug", "16-Aug", "17-Aug", "18-Aug", "19-Aug", "20-Aug", "21-Aug", "22-Aug", "23-Aug", "24-Aug"], "nameMap": {"shahla.nigar@pw.live": "Shahla Nigar", "sarthak.saxena@pw.live": "Sarthak Saxena", "efat.tanweer@pw.live": "Efat Tanweer", "shubham.patel1@pw.live": "Shubham Patel", "csr196@coderootz.in": "Neha Verma", "pooja.kumari4@pw.live": "Pooja Kumari", "csr217@coderootz.in": "Sarika", "mahawas.zeya@pw.live": "Mahawas Zeya", "paramjeet.kaur@fivesdigital.com": "Paramjeet Kaur", "ankita.bera@pw.live": "Ankita Bera", "gulafshan.naaz@pw.live": "Gulafshan Naaz", "akash.mishra3@pw.live": "Akash Mishra", "rohit.vashishth@pw.live": "Rohit Vashishth", "kratika.umrao@pw.live": "Kratika Umrao", "shubham.burman@pw.live": "Shubham Burman", "pratik.nandan@pw.live": "Pratik Nandan"}, "talktime": {"shubham.burman@pw.live": {"Average Talktime": "3:51:27", "Days > 4hrs": 15, "Total Talktime": "57:51:47", "series": [14977, 15778, 17500, 16286, 8548, 16755, 15584, 16886, 12893, 0, 0, 0, 0, 0, 0, 0, 12488, 12746, 14276, 11540, 11268, 10782, 0, 0]}, "paramjeet.kaur@fivesdigital.com": {"Average Talktime": "3:48:41", "Days > 4hrs": 18, "Total Talktime": "68:36:16", "series": [14492, 15158, 14896, 14747, 14969, 0, 15533, 14503, 12654, 14571, 13011, 0, 14594, 14462, 0, 12708, 0, 9083, 12818, 12620, 12888, 13269, 0, 0]}, "gulafshan.naaz@pw.live": {"Average Talktime": "3:07:18", "Days > 4hrs": 18, "Total Talktime": "56:13:52", "series": [15274, 16509, 15322, 14562, 144, 14835, 9415, 9641, 7912, 0, 11414, 0, 10024, 10901, 0, 11460, 10861, 7702, 9969, 11485, 7279, 7723, 0, 0]}, "kratika.umrao@pw.live": {"Average Talktime": "3:01:08", "Days > 4hrs": 16, "Total Talktime": "48:18:01", "series": [0, 0, 0, 9937, 14620, 9558, 15488, 12045, 10857, 10586, 10024, 14904, 7616, 9443, 0, 0, 9101, 7607, 10314, 12303, 9478, 0, 0, 0]}, "mahawas.zeya@pw.live": {"Average Talktime": "3:48:55", "Days > 4hrs": 12, "Total Talktime": "53:24:56", "series": [16793, 14806, 5075, 20769, 18435, 15430, 17526, 0, 0, 0, 0, 0, 16306, 9057, 0, 0, 0, 8779, 15396, 5945, 13964, 14015, 0, 0]}, "ankita.bera@pw.live": {"Average Talktime": "2:54:32", "Days > 4hrs": 15, "Total Talktime": "49:27:02", "series": [0, 15020, 11542, 0, 15011, 9878, 0, 0, 11046, 16306, 6518, 10148, 8907, 7466, 0, 9732, 7282, 6630, 11040, 12632, 8021, 10843, 0, 0]}, "efat.tanweer@pw.live": {"Average Talktime": "3:46:26", "Days > 4hrs": 17, "Total Talktime": "67:55:55", "series": [17583, 16010, 16208, 20337, 0, 15399, 14941, 9984, 15115, 14680, 13631, 14913, 15132, 11678, 0, 0, 11180, 10952, 12546, 8980, 0, 5286, 0, 0]}, "pooja.kumari4@pw.live": {"Average Talktime": "3:08:24", "Days > 4hrs": 18, "Total Talktime": "56:31:13", "series": [14429, 16279, 15050, 11561, 0, 11281, 14762, 9685, 10206, 9085, 9214, 10345, 0, 10967, 0, 12893, 9863, 8115, 0, 11951, 9347, 8440, 0, 0]}, "akash.mishra3@pw.live": {"Average Talktime": "3:07:01", "Days > 4hrs": 11, "Total Talktime": "40:31:08", "series": [0, 17332, 14565, 15852, 17020, 10087, 0, 0, 0, 0, 0, 0, 0, 7425, 16367, 8716, 9911, 6685, 8590, 5941, 0, 7377, 0, 0]}, "rohit.vashishth@pw.live": {"Average Talktime": "3:01:42", "Days > 4hrs": 12, "Total Talktime": "39:26:00", "series": [12721, 0, 0, 0, 239, 15222, 0, 12688, 10236, 9068, 0, 10781, 10333, 0, 13653, 0, 8858, 4270, 0, 16505, 9840, 7546, 0, 0]}, "csr196@coderootz.in": {"Average Talktime": "3:29:20", "Days > 4hrs": 18, "Total Talktime": "66:17:16", "series": [0, 14964, 16353, 15194, 15006, 5124, 14850, 14574, 12048, 15362, 15964, 15746, 9810, 9577, 0, 0, 12345, 8804, 9443, 14162, 11294, 8016, 0, 0]}, "csr217@coderootz.in": {"Average Talktime": "3:29:02", "Days > 4hrs": 17, "Total Talktime": "59:13:28", "series": [15016, 0, 14536, 14649, 14781, 0, 14442, 12722, 10507, 0, 13613, 12258, 8700, 15399, 0, 8791, 14536, 8753, 10814, 12836, 0, 10855, 0, 0]}, "shubham.patel1@pw.live": {"Average Talktime": "4:11:31", "Days > 4hrs": 18, "Total Talktime": "75:27:11", "series": [19580, 18584, 15934, 0, 21331, 16315, 14937, 17422, 14944, 17372, 16437, 13144, 16996, 0, 0, 15645, 10890, 0, 15920, 9023, 9604, 7553, 0, 0]}, "shahla.nigar@pw.live": {"Average Talktime": "4:15:20", "Days > 4hrs": 19, "Total Talktime": "85:06:36", "series": [16254, 16288, 18195, 16730, 15965, 15744, 15347, 16726, 16429, 15344, 15093, 17829, 15303, 8129, 0, 0, 15092, 16688, 15114, 6381, 17935, 15810, 0, 0]}, "pratik.nandan@pw.live": {"Average Talktime": "3:48:54", "Days > 4hrs": 18, "Total Talktime": "68:40:19", "series": [0, 13785, 15123, 14710, 15644, 14946, 14667, 0, 14444, 14858, 14546, 10545, 0, 14490, 0, 14657, 11016, 11277, 14541, 11559, 15077, 11334, 0, 0]}, "sarthak.saxena@pw.live": {"Average Talktime": "2:48:17", "Days > 4hrs": 13, "Total Talktime": "44:56:49", "series": [0, 3798, 0, 973, 0, 5511, 14527, 14841, 14659, 14660, 7262, 0, 14912, 14550, 0, 7981, 9804, 7975, 251, 10739, 11854, 7512, 0, 0]}}, "connected": {"mahawas.zeya@pw.live": {"Active Days": 13, "Average Connected": 54, "Total Connected": 751, "series": [55, 55, 29, 74, 60, 63, 62, 0, 0, 0, 0, 0, 67, 48, 0, 0, 0, 42, 71, 21, 55, 49, 0, 0]}, "pooja.kumari4@pw.live": {"Active Days": 15, "Average Connected": 34, "Total Connected": 614, "series": [47, 43, 47, 39, 0, 31, 44, 30, 34, 34, 22, 29, 0, 38, 0, 40, 33, 27, 0, 33, 22, 21, 0, 0]}, "shahla.nigar@pw.live": {"Active Days": 20, "Average Connected": 55, "Total Connected": 1104, "series": [59, 60, 59, 63, 56, 56, 57, 57, 56, 60, 57, 58, 58, 31, 0, 0, 57, 59, 59, 26, 59, 57, 0, 0]}, "efat.tanweer@pw.live": {"Active Days": 18, "Average Connected": 59, "Total Connected": 1062, "series": [83, 59, 74, 71, 0, 56, 56, 61, 66, 69, 57, 76, 60, 45, 0, 0, 51, 57, 46, 37, 0, 38, 0, 0]}, "akash.mishra3@pw.live": {"Active Days": 13, "Average Connected": 51, "Total Connected": 667, "series": [0, 81, 59, 64, 73, 52, 0, 0, 0, 0, 0, 0, 0, 41, 67, 43, 31, 43, 45, 33, 0, 35, 0, 0]}, "paramjeet.kaur@fivesdigital.com": {"Active Days": 18, "Average Connected": 56, "Total Connected": 1011, "series": [62, 50, 60, 69, 58, 0, 69, 64, 50, 64, 63, 0, 57, 60, 0, 48, 0, 58, 43, 46, 40, 50, 0, 0]}, "rohit.vashishth@pw.live": {"Active Days": 5, "Average Connected": 25, "Total Connected": 328, "series": [20, 0, 0, 0, 1, 46, 0, 22, 24, 25, 0, 26, 26, 0, 33, 0, 23, 11, 0, 31, 19, 21, 0, 0]}, "gulafshan.naaz@pw.live": {"Active Days": 17, "Average Connected": 44, "Total Connected": 791, "series": [58, 60, 56, 45, 3, 51, 25, 35, 46, 0, 48, 0, 43, 33, 0, 41, 44, 30, 41, 43, 49, 40, 0, 0]}, "shubham.burman@pw.live": {"Active Days": 14, "Average Connected": 52, "Total Connected": 787, "series": [50, 55, 71, 61, 24, 63, 56, 57, 69, 0, 0, 0, 0, 0, 0, 0, 51, 57, 56, 48, 42, 27, 0, 0]}, "kratika.umrao@pw.live": {"Active Days": 9, "Average Connected": 28, "Total Connected": 449, "series": [0, 0, 0, 20, 38, 21, 42, 21, 21, 32, 26, 41, 21, 31, 0, 0, 29, 23, 26, 34, 23, 0, 0, 0]}, "ankita.bera@pw.live": {"Active Days": 17, "Average Connected": 41, "Total Connected": 699, "series": [0, 69, 43, 0, 54, 35, 0, 0, 49, 70, 38, 41, 28, 29, 0, 33, 30, 34, 42, 36, 41, 27, 0, 0]}, "shubham.patel1@pw.live": {"Active Days": 18, "Average Connected": 59, "Total Connected": 1061, "series": [62, 65, 66, 0, 87, 56, 62, 66, 74, 61, 75, 51, 62, 0, 0, 65, 42, 0, 54, 36, 44, 33, 0, 0]}, "csr196@coderootz.in": {"Active Days": 19, "Average Connected": 56, "Total Connected": 1064, "series": [0, 65, 59, 56, 73, 31, 55, 67, 49, 63, 77, 51, 48, 64, 0, 0, 60, 43, 52, 52, 49, 50, 0, 0]}, "csr217@coderootz.in": {"Active Days": 17, "Average Connected": 55, "Total Connected": 931, "series": [66, 0, 73, 53, 48, 0, 65, 62, 41, 0, 57, 44, 30, 61, 0, 57, 54, 58, 53, 55, 0, 54, 0, 0]}, "pratik.nandan@pw.live": {"Active Days": 18, "Average Connected": 50, "Total Connected": 906, "series": [0, 57, 55, 54, 55, 55, 55, 0, 55, 57, 56, 39, 0, 51, 0, 55, 41, 39, 58, 37, 45, 42, 0, 0]}, "sarthak.saxena@pw.live": {"Active Days": 15, "Average Connected": 52, "Total Connected": 782, "series": [0, 27, 0, 5, 0, 30, 55, 57, 57, 66, 40, 0, 78, 65, 0, 41, 49, 52, 1, 60, 54, 45, 0, 0]}}, "uniqueConnected": {"shahla.nigar@pw.live": {"Active Days": 20, "Average Unique Connected": 49, "Total Unique Connected": 955, "series": [58, 49, 50, 59, 49, 49, 55, 53, 38, 57, 49, 54, 54, 26, 0, 0, 48, 53, 53, 26, 54, 48, 0, 0]}, "gulafshan.naaz@pw.live": {"Active Days": 16, "Average Unique Connected": 33, "Total Unique Connected": 477, "series": [32, 44, 43, 38, 1, 34, 22, 26, 38, 0, 29, 0, 32, 26, 0, 33, 30, 23, 34, 34, 38, 35, 0, 0]}, "paramjeet.kaur@fivesdigital.com": {"Active Days": 18, "Average Unique Connected": 53, "Total Unique Connected": 893, "series": [58, 45, 58, 69, 54, 0, 69, 59, 47, 62, 61, 0, 51, 55, 0, 45, 0, 49, 43, 45, 40, 42, 0, 0]}, "pooja.kumari4@pw.live": {"Active Days": 13, "Average Unique Connected": 29, "Total Unique Connected": 454, "series": [36, 37, 40, 35, 0, 28, 35, 27, 28, 31, 20, 26, 0, 24, 0, 35, 27, 23, 0, 32, 22, 21, 0, 0]}, "efat.tanweer@pw.live": {"Active Days": 18, "Average Unique Connected": 55, "Total Unique Connected": 892, "series": [74, 53, 68, 66, 0, 55, 51, 57, 61, 62, 56, 72, 52, 43, 0, 0, 46, 53, 44, 36, 0, 35, 0, 0]}, "mahawas.zeya@pw.live": {"Active Days": 13, "Average Unique Connected": 49, "Total Unique Connected": 652, "series": [50, 54, 27, 67, 54, 59, 58, 0, 0, 0, 0, 0, 60, 41, 0, 0, 0, 36, 64, 20, 53, 44, 0, 0]}, "akash.mishra3@pw.live": {"Active Days": 13, "Average Unique Connected": 49, "Total Unique Connected": 620, "series": [0, 79, 58, 60, 70, 48, 0, 0, 0, 0, 0, 0, 0, 39, 67, 40, 30, 41, 44, 31, 0, 33, 0, 0]}, "csr196@coderootz.in": {"Active Days": 19, "Average Unique Connected": 55, "Total Unique Connected": 940, "series": [0, 64, 58, 56, 72, 29, 53, 65, 49, 61, 76, 51, 45, 62, 0, 0, 60, 43, 52, 52, 49, 49, 0, 0]}, "kratika.umrao@pw.live": {"Active Days": 6, "Average Unique Connected": 25, "Total Unique Connected": 333, "series": [0, 0, 0, 18, 35, 21, 28, 21, 20, 27, 23, 30, 21, 30, 0, 0, 24, 22, 25, 32, 21, 0, 0, 0]}, "ankita.bera@pw.live": {"Active Days": 17, "Average Unique Connected": 40, "Total Unique Connected": 664, "series": [0, 68, 41, 0, 54, 35, 0, 0, 48, 70, 37, 41, 28, 29, 0, 33, 27, 34, 40, 36, 39, 27, 0, 0]}, "shubham.patel1@pw.live": {"Active Days": 18, "Average Unique Connected": 51, "Total Unique Connected": 825, "series": [61, 63, 49, 0, 85, 51, 53, 58, 58, 50, 60, 46, 40, 0, 0, 49, 42, 0, 44, 36, 44, 33, 0, 0]}, "shubham.burman@pw.live": {"Active Days": 14, "Average Unique Connected": 49, "Total Unique Connected": 658, "series": [46, 50, 65, 58, 23, 54, 50, 52, 65, 0, 0, 0, 0, 0, 0, 0, 49, 55, 56, 48, 39, 27, 0, 0]}, "rohit.vashishth@pw.live": {"Active Days": 3, "Average Unique Connected": 22, "Total Unique Connected": 264, "series": [19, 0, 0, 0, 1, 39, 0, 22, 21, 20, 0, 24, 20, 0, 30, 0, 18, 11, 0, 28, 18, 19, 0, 0]}, "csr217@coderootz.in": {"Active Days": 17, "Average Unique Connected": 54, "Total Unique Connected": 856, "series": [65, 0, 71, 53, 48, 0, 64, 62, 41, 0, 56, 44, 29, 59, 0, 56, 53, 58, 53, 55, 0, 53, 0, 0]}, "sarthak.saxena@pw.live": {"Active Days": 15, "Average Unique Connected": 49, "Total Unique Connected": 699, "series": [0, 27, 0, 5, 0, 30, 53, 57, 55, 64, 40, 0, 74, 60, 0, 40, 48, 49, 1, 52, 50, 38, 0, 0]}, "pratik.nandan@pw.live": {"Active Days": 18, "Average Unique Connected": 46, "Total Unique Connected": 762, "series": [0, 47, 48, 50, 51, 43, 51, 0, 51, 52, 50, 36, 0, 48, 0, 47, 37, 36, 54, 37, 43, 39, 0, 0]}}, "effective": {"shahla.nigar@pw.live": {"Average Effective Connected": 32, "Days Active (raw)": 18, "Total Effective Connected": 626, "series": [35, 37, 40, 39, 30, 31, 31, 32, 27, 35, 31, 34, 31, 17, 0, 0, 31, 32, 36, 16, 36, 29, 0, 0]}, "shubham.burman@pw.live": {"Average Effective Connected": 23, "Days Active (raw)": 7, "Total Effective Connected": 345, "series": [14, 21, 27, 28, 20, 29, 26, 25, 24, 0, 0, 0, 0, 0, 0, 0, 22, 25, 28, 23, 18, 15, 0, 0]}, "mahawas.zeya@pw.live": {"Average Effective Connected": 24, "Days Active (raw)": 9, "Total Effective Connected": 331, "series": [30, 27, 13, 33, 30, 28, 34, 0, 0, 0, 0, 0, 27, 19, 0, 0, 0, 14, 27, 6, 19, 25, 0, 0]}, "gulafshan.naaz@pw.live": {"Average Effective Connected": 19, "Days Active (raw)": 2, "Total Effective Connected": 344, "series": [23, 31, 32, 23, 0, 23, 17, 11, 17, 0, 19, 0, 17, 14, 0, 20, 15, 13, 17, 22, 14, 16, 0, 0]}, "efat.tanweer@pw.live": {"Average Effective Connected": 25, "Days Active (raw)": 12, "Total Effective Connected": 441, "series": [33, 25, 29, 31, 0, 25, 28, 25, 25, 30, 25, 34, 25, 23, 0, 0, 22, 19, 23, 15, 0, 6, 0, 0]}, "ankita.bera@pw.live": {"Average Effective Connected": 16, "Days Active (raw)": 3, "Total Effective Connected": 268, "series": [0, 30, 20, 0, 30, 17, 0, 0, 20, 26, 10, 13, 11, 7, 0, 10, 8, 8, 19, 15, 10, 14, 0, 0]}, "pooja.kumari4@pw.live": {"Average Effective Connected": 19, "Days Active (raw)": 2, "Total Effective Connected": 336, "series": [20, 23, 28, 18, 0, 14, 25, 16, 17, 15, 16, 17, 0, 17, 0, 21, 20, 16, 0, 22, 15, 16, 0, 0]}, "akash.mishra3@pw.live": {"Average Effective Connected": 19, "Days Active (raw)": 4, "Total Effective Connected": 244, "series": [0, 33, 28, 26, 35, 18, 0, 0, 0, 0, 0, 0, 0, 9, 21, 13, 18, 12, 11, 9, 0, 11, 0, 0]}, "paramjeet.kaur@fivesdigital.com": {"Average Effective Connected": 24, "Days Active (raw)": 6, "Total Effective Connected": 422, "series": [25, 28, 24, 25, 24, 0, 25, 31, 20, 25, 22, 0, 24, 22, 0, 24, 0, 18, 21, 21, 23, 22, 0, 0]}, "shubham.patel1@pw.live": {"Average Effective Connected": 25, "Days Active (raw)": 12, "Total Effective Connected": 449, "series": [30, 31, 27, 0, 35, 25, 27, 26, 27, 31, 31, 24, 23, 0, 0, 25, 20, 0, 25, 16, 14, 12, 0, 0]}, "kratika.umrao@pw.live": {"Average Effective Connected": 16, "Days Active (raw)": 0, "Total Effective Connected": 261, "series": [0, 0, 0, 14, 24, 14, 20, 13, 15, 21, 14, 22, 12, 17, 0, 0, 13, 14, 15, 19, 14, 0, 0, 0]}, "rohit.vashishth@pw.live": {"Average Effective Connected": 15, "Days Active (raw)": 1, "Total Effective Connected": 192, "series": [13, 0, 0, 0, 0, 27, 0, 15, 14, 13, 0, 12, 13, 0, 16, 0, 13, 9, 0, 21, 14, 12, 0, 0]}, "csr196@coderootz.in": {"Average Effective Connected": 20, "Days Active (raw)": 4, "Total Effective Connected": 375, "series": [0, 28, 24, 24, 24, 7, 23, 27, 19, 22, 27, 26, 17, 13, 0, 0, 17, 14, 15, 22, 15, 12, 0, 0]}, "csr217@coderootz.in": {"Average Effective Connected": 20, "Days Active (raw)": 2, "Total Effective Connected": 340, "series": [26, 0, 24, 23, 25, 0, 23, 20, 18, 0, 24, 21, 16, 23, 0, 9, 21, 13, 18, 20, 0, 16, 0, 0]}, "sarthak.saxena@pw.live": {"Average Effective Connected": 21, "Days Active (raw)": 6, "Total Effective Connected": 315, "series": [0, 6, 0, 2, 0, 10, 24, 28, 35, 26, 16, 0, 25, 29, 0, 16, 21, 16, 1, 21, 25, 14, 0, 0]}, "pratik.nandan@pw.live": {"Average Effective Connected": 25, "Days Active (raw)": 13, "Total Effective Connected": 456, "series": [0, 26, 27, 24, 25, 27, 29, 0, 25, 25, 28, 19, 0, 27, 0, 28, 23, 25, 27, 23, 29, 20, 0, 0]}}, "fuConnected": {"shahla.nigar@pw.live": {"Average FU Connected": 14, "Total FU Connected": 289, "series": [4, 23, 20, 15, 19, 18, 5, 1, 28, 13, 15, 13, 20, 10, 0, 0, 24, 19, 14, 2, 17, 9, 0, 0]}, "paramjeet.kaur@fivesdigital.com": {"Average FU Connected": 16, "Total FU Connected": 282, "series": [7, 16, 10, 10, 23, 0, 12, 14, 15, 21, 21, 0, 26, 26, 0, 10, 0, 28, 5, 9, 8, 21, 0, 0]}, "efat.tanweer@pw.live": {"Average FU Connected": 21, "Total FU Connected": 378, "series": [15, 24, 26, 25, 0, 18, 26, 24, 32, 32, 18, 30, 25, 13, 0, 0, 16, 21, 11, 8, 0, 14, 0, 0]}, "gulafshan.naaz@pw.live": {"Average FU Connected": 27, "Total FU Connected": 506, "series": [40, 31, 31, 25, 3, 36, 9, 26, 33, 0, 34, 0, 30, 19, 0, 21, 33, 19, 28, 21, 35, 32, 0, 0]}, "mahawas.zeya@pw.live": {"Average FU Connected": 24, "Total FU Connected": 334, "series": [14, 23, 10, 30, 24, 27, 26, 0, 0, 0, 0, 0, 37, 28, 0, 0, 0, 23, 38, 6, 20, 28, 0, 0]}, "pooja.kumari4@pw.live": {"Average FU Connected": 18, "Total FU Connected": 318, "series": [22, 22, 23, 24, 0, 17, 30, 18, 21, 20, 7, 12, 0, 24, 0, 21, 17, 13, 0, 11, 7, 9, 0, 0]}, "rohit.vashishth@pw.live": {"Average FU Connected": 12, "Total FU Connected": 152, "series": [4, 0, 0, 0, 0, 31, 0, 12, 15, 11, 0, 16, 14, 0, 9, 0, 13, 1, 0, 12, 6, 8, 0, 0]}, "ankita.bera@pw.live": {"Average FU Connected": 10, "Total FU Connected": 167, "series": [0, 11, 4, 0, 12, 6, 0, 0, 14, 18, 12, 6, 7, 8, 0, 8, 6, 10, 11, 11, 17, 6, 0, 0]}, "shubham.burman@pw.live": {"Average FU Connected": 18, "Total FU Connected": 267, "series": [8, 16, 23, 18, 3, 23, 15, 27, 30, 0, 0, 0, 0, 0, 0, 0, 20, 23, 18, 18, 15, 10, 0, 0]}, "akash.mishra3@pw.live": {"Average FU Connected": 10, "Total FU Connected": 125, "series": [0, 7, 3, 6, 21, 17, 0, 0, 0, 0, 0, 0, 0, 5, 0, 11, 5, 18, 10, 10, 0, 12, 0, 0]}, "kratika.umrao@pw.live": {"Average FU Connected": 14, "Total FU Connected": 228, "series": [0, 0, 0, 4, 24, 8, 30, 9, 11, 18, 14, 27, 8, 15, 0, 0, 15, 10, 12, 15, 8, 0, 0, 0]}, "csr217@coderootz.in": {"Average FU Connected": 13, "Total FU Connected": 216, "series": [10, 0, 14, 4, 2, 0, 20, 25, 5, 0, 11, 7, 5, 23, 0, 27, 6, 19, 10, 12, 0, 16, 0, 0]}, "sarthak.saxena@pw.live": {"Average FU Connected": 14, "Total FU Connected": 204, "series": [0, 0, 0, 0, 0, 2, 6, 15, 22, 13, 5, 0, 32, 21, 0, 11, 9, 14, 1, 19, 12, 22, 0, 0]}, "pratik.nandan@pw.live": {"Average FU Connected": 18, "Total FU Connected": 318, "series": [0, 25, 19, 18, 16, 25, 17, 0, 19, 22, 16, 16, 0, 15, 0, 24, 15, 12, 19, 7, 14, 19, 0, 0]}}, "freshConnected": {"rohit.vashishth@pw.live": {"Active Days": 0, "Average Fresh Connected": 12, "Total Fresh Connected": 170, "series": [12, 0, 0, 0, 1, 15, 0, 10, 9, 14, 0, 10, 12, 0, 24, 0, 10, 10, 0, 18, 13, 12, 0, 0]}, "kratika.umrao@pw.live": {"Active Days": 0, "Average Fresh Connected": 14, "Total Fresh Connected": 220, "series": [0, 0, 0, 16, 14, 13, 11, 12, 10, 14, 12, 14, 13, 16, 0, 0, 14, 13, 14, 19, 15, 0, 0, 0]}, "akash.mishra3@pw.live": {"Active Days": 9, "Average Fresh Connected": 40, "Total Fresh Connected": 514, "series": [0, 70, 54, 54, 51, 30, 0, 0, 0, 0, 0, 0, 0, 31, 66, 32, 23, 25, 34, 23, 0, 21, 0, 0]}, "shubham.burman@pw.live": {"Active Days": 13, "Average Fresh Connected": 34, "Total Fresh Connected": 509, "series": [41, 39, 44, 43, 21, 37, 41, 30, 39, 0, 0, 0, 0, 0, 0, 0, 30, 34, 37, 30, 26, 17, 0, 0]}, "gulafshan.naaz@pw.live": {"Active Days": 0, "Average Fresh Connected": 15, "Total Fresh Connected": 265, "series": [18, 22, 24, 20, 0, 15, 16, 9, 13, 0, 12, 0, 12, 14, 0, 20, 11, 11, 11, 18, 11, 8, 0, 0]}, "shubham.patel1@pw.live": {"Active Days": 14, "Average Fresh Connected": 37, "Total Fresh Connected": 657, "series": [53, 53, 42, 0, 55, 38, 39, 43, 41, 35, 37, 25, 24, 0, 0, 33, 26, 0, 31, 25, 33, 24, 0, 0]}, "efat.tanweer@pw.live": {"Active Days": 17, "Average Fresh Connected": 38, "Total Fresh Connected": 683, "series": [68, 34, 48, 46, 0, 38, 30, 37, 34, 37, 39, 46, 35, 32, 0, 0, 35, 36, 35, 29, 0, 24, 0, 0]}, "mahawas.zeya@pw.live": {"Active Days": 9, "Average Fresh Connected": 29, "Total Fresh Connected": 412, "series": [40, 32, 19, 42, 34, 36, 36, 0, 0, 0, 0, 0, 30, 20, 0, 0, 0, 19, 33, 15, 35, 21, 0, 0]}, "ankita.bera@pw.live": {"Active Days": 9, "Average Fresh Connected": 31, "Total Fresh Connected": 532, "series": [0, 58, 39, 0, 42, 29, 0, 0, 35, 52, 26, 35, 21, 21, 0, 25, 24, 24, 31, 25, 24, 21, 0, 0]}, "pooja.kumari4@pw.live": {"Active Days": 0, "Average Fresh Connected": 16, "Total Fresh Connected": 282, "series": [16, 21, 24, 15, 0, 14, 14, 12, 12, 14, 14, 16, 0, 12, 0, 19, 16, 14, 0, 22, 15, 12, 0, 0]}, "paramjeet.kaur@fivesdigital.com": {"Active Days": 18, "Average Fresh Connected": 40, "Total Fresh Connected": 728, "series": [54, 34, 50, 59, 35, 0, 57, 50, 35, 43, 42, 0, 31, 34, 0, 38, 0, 30, 38, 37, 32, 29, 0, 0]}, "csr196@coderootz.in": {"Active Days": 18, "Average Fresh Connected": 41, "Total Fresh Connected": 787, "series": [0, 53, 48, 44, 64, 19, 43, 52, 37, 56, 57, 41, 27, 45, 0, 0, 40, 33, 34, 36, 28, 30, 0, 0]}, "csr217@coderootz.in": {"Active Days": 16, "Average Fresh Connected": 40, "Total Fresh Connected": 686, "series": [54, 0, 56, 46, 37, 0, 44, 37, 32, 0, 45, 37, 24, 36, 0, 30, 47, 39, 43, 42, 0, 37, 0, 0]}, "sarthak.saxena@pw.live": {"Active Days": 14, "Average Fresh Connected": 38, "Total Fresh Connected": 573, "series": [0, 27, 0, 5, 0, 28, 49, 42, 35, 53, 35, 0, 43, 44, 0, 30, 40, 38, 0, 40, 41, 23, 0, 0]}, "shahla.nigar@pw.live": {"Active Days": 18, "Average Fresh Connected": 38, "Total Fresh Connected": 768, "series": [50, 36, 39, 48, 37, 38, 42, 44, 28, 47, 42, 43, 38, 21, 0, 0, 33, 40, 45, 24, 42, 31, 0, 0]}, "pratik.nandan@pw.live": {"Active Days": 16, "Average Fresh Connected": 32, "Total Fresh Connected": 584, "series": [0, 32, 36, 36, 39, 30, 38, 0, 36, 35, 40, 23, 0, 36, 0, 31, 26, 27, 39, 28, 29, 23, 0, 0]}}, "freshEC": {"rohit.vashishth@pw.live": {"Average Connected": 12, "Conv %": "76.47%", "Fresh Connected Calls": 170, "Effective Calls": 130, "series": [10, 0, 0, 0, 1, 15, 0, 10, 9, 14, 0, 10, 12, 0, 24, 0, 10, 10, 0, 18, 13, 12, 0, 0]}, "shahla.nigar@pw.live": {"Average Connected": 37, "Conv %": "68.75%", "Fresh Connected Calls": 768, "Effective Calls": 528, "series": [29, 36, 39, 48, 37, 38, 42, 44, 28, 47, 42, 43, 38, 21, 0, 0, 33, 40, 45, 24, 42, 31, 0, 0]}, "kratika.umrao@pw.live": {"Average Connected": 0, "Conv %": "84.09%", "Fresh Connected Calls": 220, "Effective Calls": 185, "series": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, "akash.mishra3@pw.live": {"Average Connected": 39, "Conv %": "41.25%", "Fresh Connected Calls": 514, "Effective Calls": 212, "series": [0, 70, 54, 54, 51, 30, 0, 0, 0, 0, 0, 0, 0, 31, 66, 32, 23, 25, 33, 23, 0, 21, 0, 0]}, "shubham.burman@pw.live": {"Average Connected": 32, "Conv %": "58.74%", "Fresh Connected Calls": 509, "Effective Calls": 299, "series": [11, 39, 44, 43, 21, 37, 41, 30, 39, 0, 0, 0, 0, 0, 0, 0, 30, 34, 37, 30, 26, 17, 0, 0]}, "gulafshan.naaz@pw.live": {"Average Connected": 15, "Conv %": "83.77%", "Fresh Connected Calls": 265, "Effective Calls": 222, "series": [15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, "efat.tanweer@pw.live": {"Average Connected": 36, "Conv %": "56.52%", "Fresh Connected Calls": 683, "Effective Calls": 386, "series": [30, 34, 47, 45, 0, 38, 30, 37, 34, 37, 39, 46, 35, 32, 0, 0, 34, 36, 34, 29, 0, 24, 0, 0]}, "mahawas.zeya@pw.live": {"Average Connected": 29, "Conv %": "56.07%", "Fresh Connected Calls": 412, "Effective Calls": 231, "series": [29, 32, 19, 42, 34, 36, 36, 0, 0, 0, 0, 0, 30, 20, 0, 0, 0, 19, 33, 15, 35, 21, 0, 0]}, "ankita.bera@pw.live": {"Average Connected": 31, "Conv %": "41.17%", "Fresh Connected Calls": 532, "Effective Calls": 219, "series": [0, 58, 39, 0, 42, 29, 0, 0, 35, 52, 26, 35, 21, 21, 0, 25, 24, 24, 31, 25, 24, 21, 0, 0]}, "pooja.kumari4@pw.live": {"Average Connected": 14, "Conv %": "86.88%", "Fresh Connected Calls": 282, "Effective Calls": 245, "series": [14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}, "paramjeet.kaur@fivesdigital.com": {"Average Connected": 39, "Conv %": "50.14%", "Fresh Connected Calls": 728, "Effective Calls": 365, "series": [23, 34, 50, 59, 35, 0, 57, 50, 35, 43, 42, 0, 31, 34, 0, 38, 0, 30, 38, 37, 32, 29, 0, 0]}, "csr196@coderootz.in": {"Average Connected": 41, "Conv %": "44.09%", "Fresh Connected Calls": 787, "Effective Calls": 347, "series": [0, 53, 48, 44, 64, 19, 43, 52, 37, 56, 57, 41, 27, 45, 0, 0, 40, 33, 34, 36, 28, 30, 0, 0]}, "csr217@coderootz.in": {"Average Connected": 39, "Conv %": "45.63%", "Fresh Connected Calls": 686, "Effective Calls": 313, "series": [24, 0, 56, 46, 37, 0, 44, 37, 32, 0, 45, 37, 24, 36, 0, 30, 47, 39, 43, 42, 0, 37, 0, 0]}}, "followup": {"csr217@coderootz.in": {"overdueHot": 7, "overdueWarm": 262, "overdueTotal": 269, "todayHot": 0, "todayWarm": 1, "todayTotal": 1, "upHot": 0, "upWarm": 4, "upTotal": 4}, "shubham.patel1@pw.live": {"overdueHot": 1, "overdueWarm": 224, "overdueTotal": 225, "todayHot": 0, "todayWarm": 3, "todayTotal": 3, "upHot": 0, "upWarm": 0, "upTotal": 0}, "akash.mishra3@pw.live": {"overdueHot": 1, "overdueWarm": 97, "overdueTotal": 98, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 3, "upTotal": 3}, "efat.tanweer@pw.live": {"overdueHot": 4, "overdueWarm": 124, "overdueTotal": 128, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 0, "upTotal": 0}, "kratika.umrao@pw.live": {"overdueHot": 1, "overdueWarm": 69, "overdueTotal": 70, "todayHot": 0, "todayWarm": 3, "todayTotal": 3, "upHot": 0, "upWarm": 0, "upTotal": 0}, "rohit.vashishth@pw.live": {"overdueHot": 5, "overdueWarm": 73, "overdueTotal": 78, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 1, "upTotal": 1}, "gulafshan.naaz@pw.live": {"overdueHot": 4, "overdueWarm": 80, "overdueTotal": 84, "todayHot": 0, "todayWarm": 1, "todayTotal": 1, "upHot": 0, "upWarm": 3, "upTotal": 3}, "ankita.bera@pw.live": {"overdueHot": 23, "overdueWarm": 86, "overdueTotal": 109, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 12, "upTotal": 12}, "pooja.kumari4@pw.live": {"overdueHot": 6, "overdueWarm": 119, "overdueTotal": 125, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 0, "upTotal": 0}, "csr196@coderootz.in": {"overdueHot": 7, "overdueWarm": 211, "overdueTotal": 218, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 0, "upTotal": 0}, "mahawas.zeya@pw.live": {"overdueHot": 6, "overdueWarm": 94, "overdueTotal": 100, "todayHot": 0, "todayWarm": 11, "todayTotal": 11, "upHot": 0, "upWarm": 4, "upTotal": 4}, "shahla.nigar@pw.live": {"overdueHot": 1, "overdueWarm": 139, "overdueTotal": 140, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 3, "upTotal": 3}, "pratik.nandan@pw.live": {"overdueHot": 1, "overdueWarm": 55, "overdueTotal": 56, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 0, "upTotal": 0}, "paramjeet.kaur@fivesdigital.com": {"overdueHot": 0, "overdueWarm": 96, "overdueTotal": 96, "todayHot": 0, "todayWarm": 6, "todayTotal": 6, "upHot": 0, "upWarm": 1, "upTotal": 1}, "shubham.burman@pw.live": {"overdueHot": 8, "overdueWarm": 167, "overdueTotal": 175, "todayHot": 0, "todayWarm": 0, "todayTotal": 0, "upHot": 0, "upWarm": 0, "upTotal": 0}}};
+const SYNC_TIMESTAMP = "24-Aug-2026, data as fetched";
+let MTD_IVR = {
+  "gulafshan.naaz@pw.live": {activeDays:18, conversion:48, convPct:12.27, freshIvrConnected:506, freshEffective:113, followupsConnected:265, avgTalktime:"0:00:00", buckets:{"<45s":0,"45s-4m":0,"4-8m":0,"8-15m":0,"15-25m":0,">25m":0}},
+  "paramjeet.kaur@fivesdigital.com": {activeDays:18, conversion:38, convPct:4.71, freshIvrConnected:282, freshEffective:56, followupsConnected:728, avgTalktime:"0:12:15", buckets:{"<45s":41.49,"45s-4m":110.64,"4-8m":87.23,"8-15m":32.98,"15-25m":7.80,">25m":0.35}},
+  "pooja.kumari4@pw.live": {activeDays:18, conversion:66, convPct:17.08, freshIvrConnected:318, freshEffective:89, followupsConnected:282, avgTalktime:"0:00:00", buckets:{"<45s":0,"45s-4m":0,"4-8m":0,"8-15m":0,"15-25m":0,">25m":0}},
+  "mahawas.zeya@pw.live": {activeDays:12, conversion:39, convPct:6.05, freshIvrConnected:334, freshEffective:99, followupsConnected:412, avgTalktime:"0:06:47", buckets:{"<45s":22.75,"45s-4m":42.81,"4-8m":45.21,"8-15m":15.27,"15-25m":6.29,">25m":2.40}},
+  "kratika.umrao@pw.live": {activeDays:16, conversion:45, convPct:15.85, freshIvrConnected:228, freshEffective:76, followupsConnected:220, avgTalktime:"0:00:00", buckets:{"<45s":0,"45s-4m":0,"4-8m":0,"8-15m":0,"15-25m":0,">25m":0}},
+  "akash.mishra3@pw.live": {activeDays:11, conversion:37, convPct:6.04, freshIvrConnected:126, freshEffective:19, followupsConnected:513, avgTalktime:"0:16:36", buckets:{"<45s":69.05,"45s-4m":199.21,"4-8m":108.73,"8-15m":50.00,"15-25m":8.73,">25m":0.79}},
+  "efat.tanweer@pw.live": {activeDays:17, conversion:43, convPct:5.34, freshIvrConnected:383, freshEffective:54, followupsConnected:678, avgTalktime:"0:08:49", buckets:{"<45s":26.11,"45s-4m":61.88,"4-8m":73.37,"8-15m":17.49,"15-25m":8.88,">25m":1.04}},
+  "ankita.bera@pw.live": {activeDays:15, conversion:35, convPct:5.41, freshIvrConnected:167, freshEffective:49, followupsConnected:532, avgTalktime:"0:14:23", buckets:{"<45s":92.22,"45s-4m":161.68,"4-8m":86.83,"8-15m":26.95,"15-25m":14.97,">25m":2.40}},
+  "csr196@coderootz.in": {activeDays:18, conversion:41, convPct:4.67, freshIvrConnected:277, freshEffective:28, followupsConnected:787, avgTalktime:"0:13:02", buckets:{"<45s":45.13,"45s-4m":131.41,"4-8m":81.95,"8-15m":32.49,"15-25m":9.75,">25m":0.72}},
+  "rohit.vashishth@pw.live": {activeDays:12, conversion:48, convPct:19.58, freshIvrConnected:152, freshEffective:59, followupsConnected:170, avgTalktime:"0:00:00", buckets:{"<45s":0,"45s-4m":0,"4-8m":0,"8-15m":0,"15-25m":0,">25m":0}},
+  "shubham.burman@pw.live": {activeDays:15, conversion:28, convPct:4.42, freshIvrConnected:267, freshEffective:42, followupsConnected:509, avgTalktime:"0:10:50", buckets:{"<45s":26.97,"45s-4m":65.17,"4-8m":80.15,"8-15m":14.98,"15-25m":14.23,">25m":2.62}},
+  "csr217@coderootz.in": {activeDays:17, conversion:38, convPct:4.51, freshIvrConnected:216, freshEffective:17, followupsConnected:686, avgTalktime:"0:14:33", buckets:{"<45s":45.83,"45s-4m":150.00,"4-8m":91.20,"8-15m":47.22,"15-25m":6.48,">25m":0.00}},
+};
+const MTD_IVR_TEAM_AVG = {convPct:7.88, freshIvrConnected:249, freshEffective:46, followupsConnected:535, avgTalktime:"0:09:25", buckets:{"<45s":38.08,"45s-4m":84.03,"4-8m":64.46,"8-15m":18.38,"15-25m":9.57,">25m":1.36}};
+
+
+const CACHE_META = { asOfDate:"24-Aug-2026", monthEnd:"31-Aug-2026", daysLeft:7, ibAvgScore:25.2 };
+const CACHE_ROWS = [
+{name:"Pooja Kumari",  zone:"Safe",   activeDays:18, drr:2.0, avgCC:34, avgFreshCC:16, effCalls:19, uniqueConn:29, effVsConn:54.72, avgTT:"3:08:24", target:69, achievement:51.55, c2conv:17.08, ibRank:7, overallSales:66, c2Sales:34.2, vprp:1.42, c2vprpDiv:35.57, distPct:53.9, websiteConv:6.9, gmbConv:null, paidDigital:null,},
+{name:"Shahla Nigar",  zone:"Safe",   activeDays:19, drr:1.9, avgCC:55, avgFreshCC:38, effCalls:32, uniqueConn:49, effVsConn:57.07, avgTT:"4:15:20", target:55, achievement:66.86, c2conv:7.27,  ibRank:6, overallSales:65, c2Sales:35.8, vprp:1.0, c2vprpDiv:36.78, distPct:56.58, websiteConv:16.67, gmbConv:10.98, paidDigital:null,},
+{name:"Rohit Vashishth",zone:"Safe",  activeDays:12, drr:2.1, avgCC:25, avgFreshCC:12, effCalls:15, uniqueConn:22, effVsConn:58.72, avgTT:"3:01:42", target:69, achievement:37.18, c2conv:19.58, ibRank:38, overallSales:48, c2Sales:25.2, vprp:0.5, c2vprpDiv:25.66, distPct:53.45, websiteConv:13.82, gmbConv:null, paidDigital:null,},
+{name:"Gulafshan Naaz", zone:"Safe",  activeDays:18, drr:1.6, avgCC:44, avgFreshCC:15, effCalls:19, uniqueConn:33, effVsConn:43.65, avgTT:"3:07:18", target:69, achievement:40.56, c2conv:12.27, ibRank:22, overallSales:48, c2Sales:27.5, vprp:0.5, c2vprpDiv:27.98, distPct:58.3, websiteConv:8.24, gmbConv:null, paidDigital:null,},
+{name:"Efat Tanweer",  zone:"Safe",   activeDays:17, drr:1.6, avgCC:59, avgFreshCC:38, effCalls:25, uniqueConn:55, effVsConn:41.71, avgTT:"3:46:26", target:47, achievement:56.81, c2conv:5.34,  ibRank:31, overallSales:43, c2Sales:26.5, vprp:0.25, c2vprpDiv:26.7, distPct:62.09, websiteConv:3.23, gmbConv:3.3, paidDigital:2.01,},
+{name:"Sarthak Saxena",zone:"Danger", activeDays:13, drr:1.7, avgCC:52, avgFreshCC:38, effCalls:21, uniqueConn:49, effVsConn:40.21, avgTT:"2:48:17", target:37, achievement:60.26, c2conv:4.79,  ibRank:56, overallSales:34, c2Sales:22.3, vprp:0.0, c2vprpDiv:22.29, distPct:65.57, websiteConv:null, gmbConv:null, paidDigital:null,},
+{name:"Shubham Patel", zone:"Danger", activeDays:18, drr:1.4, avgCC:59, avgFreshCC:37, effCalls:25, uniqueConn:51, effVsConn:42.32, avgTT:"4:11:31", target:47, achievement:52.52, c2conv:5.23,  ibRank:45, overallSales:40, c2Sales:24.7, vprp:0.0, c2vprpDiv:24.68, distPct:61.71, websiteConv:6.9, gmbConv:7.84, paidDigital:3.07,},
+{name:"Neha Verma",    zone:"Danger", activeDays:18, drr:1.4, avgCC:56, avgFreshCC:41, effCalls:20, uniqueConn:55, effVsConn:35.34, avgTT:"3:29:20", target:47, achievement:51.76, c2conv:4.67,  ibRank:47, overallSales:41, c2Sales:23.3, vprp:1.0, c2vprpDiv:24.33, distPct:59.33, websiteConv:null, gmbConv:8.57, paidDigital:null,},
+{name:"Sarika",        zone:"Danger", activeDays:17, drr:1.3, avgCC:55, avgFreshCC:40, effCalls:20, uniqueConn:54, effVsConn:36.52, avgTT:"3:29:02", target:47, achievement:46.57, c2conv:4.51,  ibRank:58, overallSales:38, c2Sales:21.4, vprp:0.5, c2vprpDiv:21.89, distPct:57.6, websiteConv:13.33, gmbConv:6.82, paidDigital:6.86,},
+{name:"Mahawas Zeya",  zone:"Danger", activeDays:12, drr:1.8, avgCC:54, avgFreshCC:29, effCalls:24, uniqueConn:49, effVsConn:44.21, avgTT:"3:48:55", target:47, achievement:46.01, c2conv:6.05,  ibRank:60, overallSales:39, c2Sales:20.4, vprp:1.25, c2vprpDiv:21.63, distPct:55.45, websiteConv:null, gmbConv:8.2, paidDigital:4.67,},
+{name:"Paramjeet Kaur",zone:"Danger", activeDays:18, drr:1.2, avgCC:56, avgFreshCC:40, effCalls:24, uniqueConn:53, effVsConn:41.94, avgTT:"3:48:41", target:47, achievement:45.66, c2conv:4.71,  ibRank:62, overallSales:38, c2Sales:21.5, vprp:0.0, c2vprpDiv:21.46, distPct:56.47, websiteConv:8.33, gmbConv:5.83, paidDigital:4.13,},
+{name:"Ankita Bera",   zone:"Danger", activeDays:15, drr:1.4, avgCC:41, avgFreshCC:31, effCalls:16, uniqueConn:40, effVsConn:38.34, avgTT:"2:54:32", target:47, achievement:44.89, c2conv:5.41,  ibRank:65, overallSales:35, c2Sales:20.6, vprp:0.5, c2vprpDiv:21.1, distPct:60.29, websiteConv:null, gmbConv:11.54, paidDigital:5.0,},
+{name:"Akash Mishra",  zone:"Danger", activeDays:11, drr:1.6, avgCC:51, avgFreshCC:40, effCalls:19, uniqueConn:49, effVsConn:36.58, avgTT:"3:07:01", target:47, achievement:38.07, c2conv:6.04,  ibRank:75, overallSales:37, c2Sales:17.6, vprp:0.25, c2vprpDiv:17.89, distPct:48.36, websiteConv:6.25, gmbConv:4.11, paidDigital:2.56,},
+{name:"Kratika Umrao", zone:"Danger", activeDays:16, drr:1.5, avgCC:28, avgFreshCC:14, effCalls:16, uniqueConn:25, effVsConn:58.13, avgTT:"3:01:08", target:69, achievement:34.82, c2conv:15.85, ibRank:49, overallSales:45, c2Sales:24.0, vprp:0.0, c2vprpDiv:24.03, distPct:53.39, websiteConv:6.9, gmbConv:null, paidDigital:null,},
+{name:"Shubham Burman",zone:"Danger", activeDays:15, drr:1.1, avgCC:52, avgFreshCC:34, effCalls:23, uniqueConn:49, effVsConn:43.84, avgTT:"3:51:27", target:47, achievement:34.40, c2conv:4.42,  ibRank:80, overallSales:28, c2Sales:16.2, vprp:0.0, c2vprpDiv:16.17, distPct:57.74, websiteConv:7.69, gmbConv:5.88, paidDigital:0.88,},
+{name:"Pratik Nandan", zone:"Danger", activeDays:18, drr:0.9, avgCC:50, avgFreshCC:32, effCalls:25, uniqueConn:46, effVsConn:50.44, avgTT:"3:48:54", target:55, achievement:29.67, c2conv:4.05,  ibRank:79, overallSales:26, c2Sales:15.3, vprp:1.0, c2vprpDiv:16.32, distPct:62.76, websiteConv:5.41, gmbConv:3.57, paidDigital:null,},
+];
+
+let ROWS = CACHE_ROWS.slice();
+let META = {...CACHE_META};
+let sortKey = "achievement", sortDir = -1;
+let isLive = false;
+let DATE_DATA = {}; // key -> parsed tab
+let dateDataLoaded = false;
+let selectedCounselor = null;
+let hourlyLoaded = false;
+
+function ttToSeconds(tt){ if(!tt || typeof tt!=="string") return 0; const p=tt.split(":").map(Number); if(p.length<3) return 0; return p[0]*3600+p[1]*60+p[2]; }
+function secToTT(sec){ sec=Math.round(sec||0); const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60; return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`; }
+function numOrZero(v){ if(v===null||v===undefined||v==="") return 0; let n = parseFloat(String(v).replace("%","").replace(/,/g,"")); return isNaN(n)?0:n; }
+
+async function fetchGviz(gid){
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}&t=${Date.now()}`;
+  const res = await fetch(url, {mode:"cors"});
+  if(!res.ok) throw new Error("bad response");
+  const text = await res.text();
+  const jsonStr = text.substring(text.indexOf("{"), text.lastIndexOf("}")+1);
+  const data = JSON.parse(jsonStr);
+  return data.table.rows.map(r => r.c.map(c => c ? (c.f !== undefined && c.f !== null ? c.f : c.v) : ""));
+}
+
+function findHeaderRow(grid, marker){
+  for(let i=0;i<grid.length;i++){
+    if(grid[i].some(cell => String(cell).trim().toLowerCase() === marker.toLowerCase())) return i;
+  }
+  return -1;
+}
+
+// ---------- IB Average ----------
+async function syncIBAverage(){
+  try{
+    const grid = await fetchGviz(GIDS.ibAverage);
+    const hIdx = findHeaderRow(grid, "Achievment %");
+    if(hIdx === -1) throw new Error("header not found");
+    const header = grid[hIdx].map(x => String(x).trim());
+    const colIndex = name => header.findIndex(h => h.toLowerCase() === name.toLowerCase());
+    const nameCol = 2;
+    const zoneCol = colIndex("Category"), activeCol = colIndex("Active Days"), drrCol = colIndex("DRR");
+    const avgCCCol = colIndex("Avg CC"), freshCCCol = colIndex("Avg Fresh CC"), effCol = colIndex("Effective Calls");
+    const uniqCol = colIndex("Unique Connected"), effVsConnCol = colIndex("Effective vs Connected %");
+    const ttCol = colIndex("Avg TT"), targetCol = colIndex("Target"), achCol = colIndex("Achievment %");
+    const c2Col = colIndex("C2 Conversion %"), ibRankCol = colIndex("IB Rank");
+    const newRows = [];
+    for(let i=hIdx+1; i<grid.length; i++){
+      const r = grid[i]; const nm = String(r[nameCol]||"").trim();
+      if(!nm || nm.toLowerCase()==="per bde") continue;
+      if(newRows.length > 60) break;
+      newRows.push({
+        name: nm, zone: String(r[zoneCol]||"").toLowerCase().includes("safe") ? "Safe" : "Danger",
+        activeDays: numOrZero(r[activeCol]), drr: numOrZero(r[drrCol]), avgCC: numOrZero(r[avgCCCol]),
+        avgFreshCC: numOrZero(r[freshCCCol]), effCalls: numOrZero(r[effCol]), uniqueConn: numOrZero(r[uniqCol]),
+        effVsConn: numOrZero(r[effVsConnCol]), avgTT: String(r[ttCol]||"0:00:00"), target: numOrZero(r[targetCol]),
+        achievement: numOrZero(r[achCol]), c2conv: numOrZero(r[c2Col]), ibRank: numOrZero(r[ibRankCol]),
+      });
+    }
+    if(newRows.length < 3) throw new Error("too few rows");
+    ROWS = newRows; isLive = true; return true;
+  }catch(e){ isLive = false; return false; }
+}
+
+// ---------- generic date-wise tab parser ----------
+async function fetchDateWiseTab(gid){
+  const grid = await fetchGviz(gid);
+  // find header row: a row containing a cell that matches "Associate" (case-insensitive)
+  let hIdx = -1, assocCol = -1;
+  for(let i=0;i<grid.length;i++){
+    const idx = grid[i].findIndex(c => String(c).trim().toLowerCase() === "associate");
+    if(idx !== -1){ hIdx = i; assocCol = idx; break; }
+  }
+  if(hIdx === -1) throw new Error("no Associate header found");
+  const header = grid[hIdx];
+  const dateColRe = /^\d{1,2}-[A-Za-z]+$/;
+  const dateCols = []; // {idx, label}
+  const summaryCols = []; // {idx, label} - between assoc and first date col
+  let firstDateIdx = -1;
+  header.forEach((h,i)=>{
+    const s = String(h).trim();
+    if(dateColRe.test(s)){ dateCols.push({idx:i, label:s}); if(firstDateIdx===-1) firstDateIdx = i; }
+  });
+  header.forEach((h,i)=>{
+    const s = String(h).trim();
+    if(i>assocCol && i<firstDateIdx && s && s.toLowerCase()!=="associate") summaryCols.push({idx:i, label:s});
+  });
+  const associates = new Map();
+  for(let i=hIdx+1; i<grid.length; i++){
+    const r = grid[i];
+    const raw = String(r[assocCol]||"").trim();
+    if(!raw || raw.toLowerCase()==="average" || raw.toLowerCase()==="total") continue;
+    const email = raw.toLowerCase();
+    if(!TEAM_EMAILS.has(email)) continue; // keep only Team Pravin
+    const summary = {}; summaryCols.forEach(c=>{ summary[c.label] = r[c.idx]; });
+    const series = dateCols.map(c => r[c.idx]);
+    associates.set(email, {email, summary, series});
+  }
+  return { dateLabels: dateCols.map(c=>c.label), summaryLabels: summaryCols.map(c=>c.label), associates };
+}
+
+async function loadAllDateTabs(){
+  const results = await Promise.allSettled(DATE_TABS.map(t => fetchDateWiseTab(GIDS[t.key])));
+  results.forEach((res, i) => {
+    const key = DATE_TABS[i].key;
+    if(res.status === "fulfilled") DATE_DATA[key] = res.value;
+    else DATE_DATA[key] = null;
+  });
+  dateDataLoaded = true;
+}
+
+// ---------- render: overview ----------
+function fmtPct(n){ return (n||0).toFixed(1)+"%"; }
+function renderTicker(){
+  const avgAch = ROWS.reduce((a,r)=>a+r.achievement,0)/ROWS.length;
+  const avgEff = ROWS.reduce((a,r)=>a+r.effCalls,0)/ROWS.length;
+  const avgUniq = ROWS.reduce((a,r)=>a+r.uniqueConn,0)/ROWS.length;
+  const avgTTsec = ROWS.reduce((a,r)=>a+ttToSeconds(r.avgTT),0)/ROWS.length;
+  document.getElementById("ticker").innerHTML = `
+    <div class="tick"><div class="lbl">IB Average Score</div><div class="val amber">${META.ibAvgScore}</div><div class="sub">org-wide index</div></div>
+    <div class="tick"><div class="lbl">Team Achievement</div><div class="val safe">${fmtPct(avgAch)}</div><div class="sub">avg across ${ROWS.length}</div></div>
+    <div class="tick"><div class="lbl">Avg Effective Calls</div><div class="val teal">${avgEff.toFixed(1)}</div><div class="sub">${avgUniq.toFixed(1)} avg unique connected</div></div>
+    <div class="tick"><div class="lbl">Avg Talktime</div><div class="val">${secToTT(avgTTsec)}</div><div class="sub">hh:mm:ss / counselor</div></div>
+    <div class="tick"><div class="lbl">Days Left</div><div class="val danger">${META.daysLeft}</div><div class="sub">till ${META.monthEnd}</div></div>`;
+}
+function renderInsights(){
+  const sorted = [...ROWS].sort((a,b)=>b.achievement-a.achievement);
+  const top = sorted[0], bottom = sorted[sorted.length-1];
+  const safeCount = ROWS.filter(r=>r.zone==="Safe").length, dangerCount = ROWS.length - safeCount;
+  const below40 = ROWS.filter(r=>r.achievement < 40).length;
+  const bestC2 = [...ROWS].sort((a,b)=>b.c2conv-a.c2conv)[0];
+  document.getElementById("insights").innerHTML = `
+    <div class="icard g"><div class="k">Top Performer</div><div class="v2">${top.name}<br><small>${fmtPct(top.achievement)} achievement</small></div></div>
+    <div class="icard r"><div class="k">Needs Attention</div><div class="v2">${bottom.name}<br><small>${fmtPct(bottom.achievement)} achievement</small></div></div>
+    <div class="icard"><div class="k">Zone Split</div><div class="v2">${safeCount} Safe / ${dangerCount} Danger<br><small>${below40} below 40% achievement</small></div></div>
+    <div class="icard t"><div class="k">Best C2 Conversion</div><div class="v2">${bestC2.name}<br><small>${fmtPct(bestC2.c2conv)}</small></div></div>`;
+}
+function renderBoard(){
+  const sorted = [...ROWS].sort((a,b)=>{
+    const va=a[sortKey], vb=b[sortKey];
+    if(sortKey==="avgTT") return (ttToSeconds(va)-ttToSeconds(vb))*sortDir;
+    if(typeof va==="string") return va.localeCompare(vb)*sortDir;
+    return (va-vb)*sortDir;
+  });
+  document.getElementById("rowCount").textContent = ROWS.length;
+  const maxAch = Math.max(...ROWS.map(r=>r.achievement),1);
+  document.getElementById("boardBody").innerHTML = sorted.map((r,i)=>{
+    const rankCls = i===0?"r1":i===1?"r2":i===2?"r3":"";
+    const col = r.achievement>=60?'#33C48D':r.achievement>=40?'#F2A93B':'#FF6B5D';
+    const grad = r.achievement>=60?'linear-gradient(90deg,#12352A,#33C48D)':r.achievement>=40?'linear-gradient(90deg,#8A6423,#F2A93B)':'linear-gradient(90deg,#3A1A17,#FF6B5D)';
+    const divSales = (r.c2vprpDiv !== undefined) ? r.c2vprpDiv : (CACHE_ROWS.find(c=>c.name===r.name)||{}).c2vprpDiv;
+    return `<tr>
+      <td><span class="rank ${rankCls}">${i+1}</span></td>
+      <td><div class="name">${r.name}</div><div class="name-sub">Org rank #${r.ibRank||"–"}</div></td>
+      <td><span class="zone ${r.zone==="Safe"?"safe":"danger"}"><span class="d"></span>${r.zone} Zone</span></td>
+      <td class="mono-cell">${r.activeDays}</td><td class="mono-cell">${r.drr}</td><td class="mono-cell">${r.avgCC}</td>
+      <td class="mono-cell">${r.effCalls}</td><td class="mono-cell">${r.uniqueConn}</td><td class="mono-cell">${fmtPct(r.effVsConn)}</td>
+      <td class="mono-cell">${r.avgTT}</td><td class="mono-cell">${r.target}</td>
+      <td><div class="bar-cell"><span class="ach" style="color:${col}">${fmtPct(r.achievement)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,(r.achievement/maxAch)*100)}%; background:${grad}"></div></div></div></td>
+      <td class="mono-cell">${fmtPct(r.c2conv)}</td>
+      <td class="mono-cell">${divSales!=null ? divSales : "—"}</td>
+    </tr>`;
+  }).join("");
+}
+function svg(w,h,inner){ return `<svg width="100%" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;font-family:'JetBrains Mono',monospace;">${inner}</svg>`; }
+function renderAchChart(){
+  const sorted=[...ROWS].sort((a,b)=>b.achievement-a.achievement);
+  const w=680,barH=22,gap=8,padL=150,padR=50,h=sorted.length*(barH+gap)+10,maxV=100;
+  let bars=sorted.map((r,i)=>{ const y=i*(barH+gap); const bw=(r.achievement/maxV)*(w-padL-padR);
+    const color=r.achievement>=60?"#33C48D":r.achievement>=40?"#F2A93B":"#FF6B5D";
+    return `<text x="${padL-10}" y="${y+barH/2+4}" text-anchor="end" font-size="11" fill="#8C95AA">${r.name}</text>
+      <rect x="${padL}" y="${y}" width="${w-padL-padR}" height="${barH}" rx="4" fill="#0D1524" />
+      <rect x="${padL}" y="${y}" width="${bw}" height="${barH}" rx="4" fill="${color}" />
+      <text x="${padL+bw+8}" y="${y+barH/2+4}" font-size="11" fill="#EDEFF5" font-weight="700">${r.achievement.toFixed(1)}%</text>`;
+  }).join("");
+  document.getElementById("achChart").innerHTML = svg(w,h,bars);
+}
+function renderZoneDonut(){
+  const safe=ROWS.filter(r=>r.zone==="Safe").length, danger=ROWS.length-safe, total=ROWS.length;
+  const r=70,cx=110,cy=110,sw=26,circ=2*Math.PI*r,safeLen=(safe/total)*circ,dangerLen=circ-safeLen;
+  const inner=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#3A1A17" stroke-width="${sw}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#FF6B5D" stroke-width="${sw}" stroke-dasharray="${dangerLen} ${circ}" transform="rotate(-90 ${cx} ${cy})"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#33C48D" stroke-width="${sw}" stroke-dasharray="${safeLen} ${circ}" stroke-dashoffset="-${dangerLen}" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="26" fill="#EDEFF5" font-weight="700" font-family="Rajdhani">${total}</text>
+    <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="10" fill="#8C95AA">counselors</text>
+    <g transform="translate(230,70)"><circle cx="0" cy="0" r="5" fill="#33C48D"/><text x="12" y="4" font-size="12" fill="#EDEFF5">Safe Zone — ${safe}</text>
+    <circle cx="0" cy="26" r="5" fill="#FF6B5D"/><text x="12" y="30" font-size="12" fill="#EDEFF5">Danger Zone — ${danger}</text></g>`;
+  document.getElementById("zoneDonut").innerHTML = svg(320,220,inner);
+}
+function renderTTChart(){
+  const w=680,barW=28,gap=14,padB=70,padT=26,h=260;
+  const secs=ROWS.map(r=>ttToSeconds(r.avgTT)); const maxS=Math.max(...secs)*1.15;
+  const avgS=secs.reduce((a,b)=>a+b,0)/secs.length; const chartH=h-padT-padB;
+  let bars=ROWS.map((r,i)=>{ const x=40+i*(barW+gap); const bh=(ttToSeconds(r.avgTT)/maxS)*chartH;
+    return `<rect x="${x}" y="${padT+chartH-bh}" width="${barW}" height="${bh}" rx="3" fill="#4FD1D9" opacity="0.85"/>
+      <text x="${x+barW/2}" y="${padT+chartH-bh-5}" font-size="8" fill="#4FD1D9" text-anchor="middle" font-weight="700">${r.avgTT.split(":").slice(0,2).join(":")}</text>
+      <text x="${x+barW/2}" y="${h-padB+16}" font-size="9" fill="#8C95AA" transform="rotate(45 ${x+barW/2} ${h-padB+16})" text-anchor="start">${r.name.split(" ")[0]}</text>`;
+  }).join("");
+  const avgY=padT+chartH-(avgS/maxS)*chartH, lineW=40+ROWS.length*(barW+gap);
+  document.getElementById("ttChart").innerHTML = svg(w,h+30, bars+`<line x1="30" y1="${avgY}" x2="${lineW}" y2="${avgY}" stroke="#F2A93B" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${lineW+6}" y="${avgY+4}" font-size="10" fill="#F2A93B">avg ${secToTT(avgS).split(":").slice(0,2).join(":")}</text>`);
+}
+function renderCallsChart(){
+  const w=680,barW=12,gap=22,padB=70,padT=26,h=260;
+  const maxV=Math.max(...ROWS.map(r=>r.uniqueConn))*1.15, chartH=h-padT-padB;
+  let bars=ROWS.map((r,i)=>{ const x=40+i*((barW*2)+gap); const bh1=(r.effCalls/maxV)*chartH, bh2=(r.uniqueConn/maxV)*chartH;
+    return `<rect x="${x}" y="${padT+chartH-bh1}" width="${barW}" height="${bh1}" rx="2" fill="#F2A93B"/>
+      <text x="${x+barW/2}" y="${padT+chartH-bh1-4}" font-size="7.5" fill="#F2A93B" text-anchor="middle" font-weight="700">${r.effCalls}</text>
+      <rect x="${x+barW+2}" y="${padT+chartH-bh2}" width="${barW}" height="${bh2}" rx="2" fill="#4FD1D9" opacity="0.7"/>
+      <text x="${x+barW+2+barW/2}" y="${padT+chartH-bh2-4}" font-size="7.5" fill="#4FD1D9" text-anchor="middle" font-weight="700">${r.uniqueConn}</text>
+      <text x="${x+barW}" y="${h-padB+16}" font-size="9" fill="#8C95AA" transform="rotate(45 ${x+barW} ${h-padB+16})" text-anchor="start">${r.name.split(" ")[0]}</text>`;
+  }).join("");
+  const legend=`<circle cx="40" cy="6" r="4" fill="#F2A93B"/><text x="50" y="10" font-size="10" fill="#EDEFF5">Effective Calls</text>
+    <circle cx="180" cy="6" r="4" fill="#4FD1D9"/><text x="190" y="10" font-size="10" fill="#EDEFF5">Unique Connected</text>`;
+  document.getElementById("callsChart").innerHTML = svg(w,h+30, legend+bars);
+}
+
+// ---------- deep dive ----------
+function renderCounselorPicker(){
+  const names = Object.keys(NAME_TO_EMAIL).sort();
+  document.getElementById("counselorPicker").innerHTML = names.map(n=>`<button class="cpill" data-name="${n}">${n}</button>`).join("");
+  document.querySelectorAll("#counselorPicker .cpill").forEach(b=>{
+    b.addEventListener("click", ()=>{ selectedCounselor=b.dataset.name; renderCounselorPicker(); renderDeepDive(); });
+  });
+  document.querySelectorAll("#counselorPicker .cpill").forEach(b=>{ if(b.dataset.name===selectedCounselor) b.classList.add("active"); });
+}
+
+function multiLineChart(seriesArr, dateLabels, h=260, isTime=false){
+  // seriesArr: [{label, color, values:[num...]}]
+  const w=900, padL=54, padR=20, padT=20, padB=50, chartW=w-padL-padR, chartH=h-padT-padB;
+  const allVals = seriesArr.flatMap(s=>s.values);
+  const maxV = Math.max(...allVals, 1)*1.15;
+  const n = dateLabels.length;
+  const stepX = n>1 ? chartW/(n-1) : chartW;
+  const fmtY = v => isTime ? secToTT(v).replace(/^0:/,"") : (v>=1000? (v/1000).toFixed(1)+"k" : Math.round(v));
+  // y-axis gridlines (4 bands)
+  let gridlines = "";
+  for(let g=0; g<=4; g++){
+    const val = (maxV/4)*g;
+    const y = padT+chartH-(val/maxV)*chartH;
+    gridlines += `<line x1="${padL}" y1="${y}" x2="${padL+chartW}" y2="${y}" stroke="#1E2A42" stroke-width="1"/>`;
+    gridlines += `<text x="${padL-8}" y="${y+3}" font-size="9" fill="#5C6579" text-anchor="end">${fmtY(val)}</text>`;
+  }
+  let lines = seriesArr.map((s,si)=>{
+    const pts = s.values.map((v,i)=> `${padL+i*stepX},${padT+chartH-(v/maxV)*chartH}`).join(" ");
+    const isPrimary = si===0;
+    // only the primary series gets dots + value labels; comparison series (e.g. Team Avg) stays clean
+    const dots = isPrimary ? s.values.map((v,i)=>{
+      const x = padL+i*stepX, y = padT+chartH-(v/maxV)*chartH;
+      const showLabel = n<=10 || i%3===0 || i===n-1;
+      const label = showLabel ? `<text x="${x}" y="${y-7}" font-size="8.5" fill="${s.color}" text-anchor="middle" font-weight="700">${fmtY(v)}</text>` : "";
+      return `<circle cx="${x}" cy="${y}" r="2.5" fill="${s.color}"/>${label}`;
+    }).join("") : "";
+    const dash = isPrimary ? "" : `stroke-dasharray="5 4"`;
+    const strokeW = isPrimary ? 2 : 1.5;
+    return `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="${strokeW}" ${dash} opacity="${isPrimary?1:0.75}"/>${dots}`;
+  }).join("");
+  let axisLabels = dateLabels.map((d,i)=>{
+    if(n>15 && i%3!==0) return "";
+    return `<text x="${padL+i*stepX}" y="${h-padB+16}" font-size="8.5" fill="#8C95AA" transform="rotate(45 ${padL+i*stepX} ${h-padB+16})" text-anchor="start">${d.replace("-Aug","")}</text>`;
+  }).join("");
+  let legend = seriesArr.map((s,i)=>`<circle cx="${padL+i*140}" cy="6" r="4" fill="${s.color}"/><text x="${padL+i*140+10}" y="10" font-size="10" fill="#EDEFF5">${s.label}</text>`).join("");
+  return svg(w, h+20, gridlines+legend+lines+axisLabels+`<line x1="${padL}" y1="${padT+chartH}" x2="${padL+chartW}" y2="${padT+chartH}" stroke="#1E2A42"/>`);
+}
+
+function renderDeepDive(){
+  const body = document.getElementById("deepdiveBody");
+  if(!selectedCounselor){ body.innerHTML = `<div class="loading">Select a counselor to see their detailed data…</div>`; return; }
+  const email = NAME_TO_EMAIL[selectedCounselor].toLowerCase();
+  const ibRow = CACHE_ROWS.find(r=>r.name===selectedCounselor);
+  const dates = BUNDLE.dates;
+
+  const RANK_METRICS = [
+    {key:'achievement', label:'Achievement %', get:r=>r.achievement, fmt:v=>fmtPct(v)},
+    {key:'effCalls', label:'Effective Calls (avg/day)', get:r=>r.effCalls, fmt:v=>v},
+    {key:'uniqueConn', label:'Unique Connected (avg/day)', get:r=>r.uniqueConn, fmt:v=>v},
+    {key:'avgCC', label:'Connected Calls (avg/day)', get:r=>r.avgCC, fmt:v=>v},
+    {key:'avgFreshCC', label:'Fresh Calls (avg/day)', get:r=>r.avgFreshCC, fmt:v=>v},
+    {key:'avgTT', label:'Talktime (avg/day)', get:r=>ttToSeconds(r.avgTT), fmt:v=>secToTT(v)},
+    {key:'effVsConn', label:'Effective / Connected %', get:r=>r.effVsConn, fmt:v=>fmtPct(v)},
+    {key:'c2conv', label:'C2 Conversion %', get:r=>r.c2conv, fmt:v=>fmtPct(v)},
+    {key:'overallSales', label:'Overall Sales', get:r=>r.overallSales||0, fmt:v=>v},
+    {key:'distPct', label:'Distribution %', get:r=>r.distPct||0, fmt:v=>fmtPct(v)},
+  ];
+  const standing = RANK_METRICS.map(m=>{
+    const arr = CACHE_ROWS.map(r=>({name:r.name, value:m.get(r)})).sort((a,b)=>b.value-a.value);
+    const rank = arr.findIndex(x=>x.name===selectedCounselor)+1;
+    const teamAvg = arr.reduce((a,x)=>a+x.value,0)/arr.length;
+    return {...m, rank, total:arr.length, myVal: arr[rank-1] ? arr[rank-1].value : 0, teamAvg};
+  });
+  const bestRanked = [...standing].sort((a,b)=>a.rank-b.rank).slice(0,3);
+  const worstRanked = [...standing].sort((a,b)=>b.rank-a.rank).slice(0,3);
+
+  let chips = `<div class="chipgrid">`;
+  if(ibRow){
+    chips += `<div class="chip"><div class="k">Achievement</div><div class="v">${fmtPct(ibRow.achievement)}</div></div>`;
+    chips += `<div class="chip"><div class="k">Zone</div><div class="v">${ibRow.zone}</div></div>`;
+    chips += `<div class="chip"><div class="k">Avg TT (IB)</div><div class="v">${ibRow.avgTT}</div></div>`;
+    chips += `<div class="chip"><div class="k">Target</div><div class="v">${ibRow.target}</div></div>`;
+    chips += `<div class="chip"><div class="k">C2 Conversion</div><div class="v">${fmtPct(ibRow.c2conv)}</div></div>`;
+    chips += `<div class="chip"><div class="k">Org IB Rank</div><div class="v">#${ibRow.ibRank}</div></div>`;
+    const secPerLead = ibRow.avgCC ? ttToSeconds(ibRow.avgTT)/ibRow.avgCC : 0;
+    chips += `<div class="chip"><div class="k">Avg Talktime / Lead</div><div class="v">${secToTT(secPerLead).replace(/^0:/,"")}</div></div>`;
+    chips += `<div class="chip"><div class="k">Team Rank (Achievement)</div><div class="v">#${standing[0].rank} of ${standing[0].total}</div></div>`;
+  }
+  chips += `</div>`;
+
+  const arrow = (v,teamAvg) => v>=teamAvg ? `<span style="color:var(--safe)">▲</span>` : `<span style="color:var(--danger)">▼</span>`;
+  let standingHtml = `<div class="metric-group"><h4>Team Standing — Where ${selectedCounselor.split(" ")[0]} Ranks (of ${standing[0].total})</h4>
+    <div class="board"><table><thead><tr><th>Metric</th><th>Value</th><th>Team Rank</th><th>Team Avg</th><th>vs Avg</th></tr></thead><tbody>
+    ${standing.map(s=>{
+      const rankCls = s.rank===1?"r1":s.rank<=3?"r2":s.rank>=s.total-2?"r3":"";
+      const delta = s.myVal - s.teamAvg;
+      return `<tr><td>${s.label}</td><td class="mono-cell">${s.fmt(s.myVal)}</td>
+        <td><span class="rank ${rankCls}">${s.rank}</span></td>
+        <td class="mono-cell">${s.fmt(s.teamAvg)}</td>
+        <td class="mono-cell">${arrow(s.myVal,s.teamAvg)} ${s.fmt(Math.abs(delta))}</td></tr>`;
+    }).join("")}
+    </tbody></table></div>
+  </div>
+  <div class="insights" style="margin-bottom:18px;">
+    <div class="icard g"><div class="k">Strongest In</div><div class="v2">${bestRanked.map(b=>`${b.label} <small>(#${b.rank})</small>`).join("<br>")}</div></div>
+    <div class="icard r"><div class="k">Needs Improvement</div><div class="v2">${worstRanked.map(b=>`${b.label} <small>(#${b.rank})</small>`).join("<br>")}</div></div>
+  </div>`;
+
+  const salesRow = (ibRow && ibRow.overallSales !== undefined) ? ibRow : CACHE_ROWS.find(r=>r.name===selectedCounselor);
+  let salesHtml = "";
+  if(salesRow){
+    const fmt1 = v => (v===null||v===undefined) ? "—" : (typeof v==="number" ? v : v);
+    salesHtml = `<div class="metric-group"><h4>Sales &amp; Conversion</h4><div class="chipgrid">
+      <div class="chip"><div class="k">C2 Conversion %</div><div class="v">${fmtPct(salesRow.c2conv)}</div></div>
+      <div class="chip"><div class="k">Overall Sales</div><div class="v">${fmt1(salesRow.overallSales)}</div></div>
+      <div class="chip"><div class="k">C2 Sales</div><div class="v">${fmt1(salesRow.c2Sales)}</div></div>
+      <div class="chip"><div class="k">VPRP</div><div class="v">${fmt1(salesRow.vprp)}</div></div>
+      <div class="chip"><div class="k">C2 + VPRP (Divided)</div><div class="v">${fmt1(salesRow.c2vprpDiv)}</div></div>
+      <div class="chip"><div class="k">Distribution %</div><div class="v">${salesRow.distPct!=null?fmtPct(salesRow.distPct):"—"}</div></div>
+      <div class="chip"><div class="k">Website Conv %</div><div class="v">${salesRow.websiteConv!=null?fmtPct(salesRow.websiteConv):"—"}</div></div>
+      <div class="chip"><div class="k">GMB Conv %</div><div class="v">${salesRow.gmbConv!=null?fmtPct(salesRow.gmbConv):"—"}</div></div>
+      <div class="chip"><div class="k">Paid Digital %</div><div class="v">${salesRow.paidDigital!=null?fmtPct(salesRow.paidDigital):"—"}</div></div>
+    </div></div>`;
+  }
+
+  let mtdIvrHtml = "";
+  const ivrRec = MTD_IVR[email];
+  if(ivrRec){
+    const bucketOrder = ["<45s","45s-4m","4-8m","8-15m","15-25m",">25m"];
+    const maxBucket = Math.max(...bucketOrder.map(k=>ivrRec.buckets[k]), 1);
+    const bucketBars = bucketOrder.map(k=>{
+      const v = ivrRec.buckets[k];
+      const teamV = MTD_IVR_TEAM_AVG.buckets[k];
+      return `<div style="margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:3px;"><span>${k}</span><span class="mono-cell">${v.toFixed(2)}% <span style="color:var(--muted-2)">(team avg ${teamV.toFixed(2)}%)</span></span></div>
+        <div class="bar-track" style="width:100%; height:6px;"><div class="bar-fill" style="width:${Math.min(100,(v/maxBucket)*100)}%; background:linear-gradient(90deg,#8A6423,#F2A93B)"></div></div>
+      </div>`;
+    }).join("");
+    mtdIvrHtml = `<div class="metric-group"><h4>MTD Talktime &amp; Fresh IVR Analysis</h4>
+      <div class="chipgrid">
+        <div class="chip"><div class="k">Active Days</div><div class="v">${ivrRec.activeDays}</div></div>
+        <div class="chip"><div class="k">Conversion (count)</div><div class="v">${ivrRec.conversion}</div></div>
+        <div class="chip"><div class="k">Conversion %</div><div class="v">${fmtPct(ivrRec.convPct)}</div></div>
+        <div class="chip"><div class="k">Fresh IVR Connected</div><div class="v">${ivrRec.freshIvrConnected}</div></div>
+        <div class="chip"><div class="k">Fresh Effective Calls</div><div class="v">${ivrRec.freshEffective}</div></div>
+        <div class="chip"><div class="k">Followups Connected</div><div class="v">${ivrRec.followupsConnected}</div></div>
+        <div class="chip"><div class="k">Average Talktime</div><div class="v">${ivrRec.avgTalktime}</div></div>
+      </div>
+      <div style="margin-top:14px;"><div class="k" style="font-size:9.5px; text-transform:uppercase; letter-spacing:0.6px; color:var(--muted-2); margin-bottom:8px;">Call Duration Distribution</div>${bucketBars}</div>
+    </div>`;
+  } else {
+    mtdIvrHtml = `<div class="metric-group"><h4>MTD Talktime &amp; Fresh IVR Analysis</h4><div class="empty">No data found for this counselor in this tab.</div></div>`;
+  }
+
+  const SNAPSHOT_DEFS = [
+    {key:"talktime", label:"Talktime", isTime:true},
+    {key:"connected", label:"Connected Calls"},
+    {key:"uniqueConnected", label:"Unique Connected"},
+    {key:"effective", label:"Effective Calls"},
+    {key:"fuConnected", label:"FU Connected"},
+    {key:"freshConnected", label:"Fresh Connected"},
+    {key:"freshEC", label:"Fresh EC"},
+  ];
+  let snapshotHtml = `<div class="metric-group"><h4>Day / Week / Month Snapshot</h4><div class="board"><table><thead><tr><th>Metric</th><th>Today (${dates[dates.length-1]})</th><th>Last 7 Days</th><th>MTD Total (sheet)</th><th>MTD Daily Avg</th></tr></thead><tbody>`;
+  SNAPSHOT_DEFS.forEach(m=>{
+    const rec = BUNDLE[m.key][email];
+    if(!rec){ snapshotHtml += `<tr><td>${m.label}</td><td colspan="4" class="empty" style="padding:8px;">No data</td></tr>`; return; }
+    const series = rec.series;
+    const today = series[series.length-1]||0;
+    const last7 = series.slice(-7).reduce((a,b)=>a+b,0);
+    // prefer the sheet's own stated Total field for authoritative accuracy
+    const totalKey = Object.keys(rec).find(k => /^total/i.test(k));
+    const sheetTotal = totalKey ? rec[totalKey] : series.reduce((a,b)=>a+b,0);
+    const mtdTotal = m.isTime ? ttToSeconds(String(sheetTotal)) : (typeof sheetTotal==="number"?sheetTotal:series.reduce((a,b)=>a+b,0));
+    const activeDaysCount = series.filter(v=>v>0).length;
+    const mtdAvg = activeDaysCount ? series.reduce((a,b)=>a+b,0)/activeDaysCount : 0;
+    const f = v => m.isTime ? secToTT(v) : v.toFixed(0);
+    snapshotHtml += `<tr><td>${m.label}</td><td class="mono-cell">${f(today)}</td><td class="mono-cell">${f(last7)}</td><td class="mono-cell">${f(mtdTotal)}</td><td class="mono-cell">${f(mtdAvg)}</td></tr>`;
+  });
+  snapshotHtml += `</tbody></table></div></div>`;
+
+  const METRIC_DEFS = [
+    {key:"talktime", label:"Talktime", isTime:true, color:"#4FD1D9"},
+    {key:"connected", label:"Connected Calls", color:"#F2A93B"},
+    {key:"uniqueConnected", label:"Unique Connected", color:"#33C48D"},
+    {key:"effective", label:"Effective Calls", color:"#B18CFF"},
+    {key:"fuConnected", label:"FU Connected", color:"#FF6B5D"},
+    {key:"freshConnected", label:"Fresh Connected", color:"#F2A93B"},
+    {key:"freshEC", label:"Fresh EC", color:"#4FD1D9"},
+  ];
+
+  let metricGroups = "";
+  const countSeries = [];
+  METRIC_DEFS.forEach(t=>{
+    const tabData = BUNDLE[t.key];
+    const rec = tabData ? tabData[email] : null;
+    if(!rec){ metricGroups += `<div class="metric-group"><h4>${t.label}</h4><div class="empty">No data found for this counselor in this tab.</div></div>`; return; }
+    const series = rec.series;
+    const activeDaysCount = series.filter(v=>v>0).length;
+    const total = series.reduce((a,b)=>a+b,0);
+    const avg = activeDaysCount ? total/activeDaysCount : 0;
+    let summaryHtml = `<div class="chipgrid">`;
+    Object.entries(rec).forEach(([k,v])=>{
+      if(k==="series") return;
+      summaryHtml += `<div class="chip"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    });
+    summaryHtml += `<div class="chip"><div class="k">MTD Total (computed)</div><div class="v">${t.isTime?secToTT(total):total}</div></div>`;
+    summaryHtml += `<div class="chip"><div class="k">Daily Avg (active days)</div><div class="v">${t.isTime?secToTT(avg):avg.toFixed(1)}</div></div>`;
+    summaryHtml += `</div>`;
+    if(!t.isTime) countSeries.push({label:t.label, color:t.color, values:series});
+    const peakIdx = series.reduce((best,v,i)=>v>series[best]?i:best, 0);
+    const peakVal = series[peakIdx], latestVal = series[series.length-1];
+    const fmtV = v => t.isTime ? secToTT(v) : v;
+    const statCaption = `<div style="display:flex; gap:18px; flex-wrap:wrap; font-size:11px; color:var(--muted); margin:6px 0 10px 0;">
+      <span>Peak: <b style="color:var(--text)">${fmtV(peakVal)}</b> on ${dates[peakIdx]}</span>
+      <span>Latest (${dates[dates.length-1]}): <b style="color:var(--text)">${fmtV(latestVal)}</b></span>
+      <span>MTD Total: <b style="color:var(--text)">${fmtV(total)}</b></span>
+    </div>`;
+    // find the top performer for this metric (highest MTD total among all counselors in this tab)
+    let topEmail = null, topTotal = -1;
+    Object.entries(tabData).forEach(([em, rr])=>{
+      const s = rr.series.reduce((a,b)=>a+b,0);
+      if(s > topTotal){ topTotal = s; topEmail = em; }
+    });
+    const topName = topEmail ? (BUNDLE.nameMap[topEmail] || topEmail) : null;
+    const isSelectedTop = topEmail === email;
+    let chartSeries = [{label:selectedCounselor.split(" ")[0], color:t.color, values:series}];
+    let chartTitleSuffix = "";
+    if(topEmail && !isSelectedTop){
+      chartSeries.push({label:`Top: ${topName.split(" ")[0]}`, color:"#F2A93B", values:tabData[topEmail].series});
+      chartTitleSuffix = ` vs Top Performer (${topName})`;
+    } else if(isSelectedTop){
+      chartTitleSuffix = ` — ${selectedCounselor.split(" ")[0]} is the Top Performer`;
+    }
+    metricGroups += `<div class="metric-group"><h4>${t.label} — Date-wise (1–24 Aug)${chartTitleSuffix}</h4>${summaryHtml}${statCaption}${multiLineChart(chartSeries, dates, 180, t.isTime)}</div>`;
+  });
+
+  let combinedChart = "";
+  if(countSeries.length){
+    combinedChart = `<div class="metric-group"><h4>Combined Call Metrics — All Days</h4>${multiLineChart(countSeries, dates, 260)}</div>`;
+  }
+
+  const liveBadge = isDeepDiveLive
+    ? `<span class="pill live" style="margin-left:10px;">● live data</span>`
+    : `<span class="pill cached" style="margin-left:10px;">● snapshot (live fetch pending/blocked)</span>`;
+  body.innerHTML = `<h3 class="disp" style="font-size:18px; margin-bottom:12px;">${selectedCounselor} <span style="color:var(--muted); font-size:12px; font-weight:500;">(${email})</span>${liveBadge}</h3>${chips}${standingHtml}${snapshotHtml}${salesHtml}${mtdIvrHtml}${combinedChart}${metricGroups}`;
+}
+
+// ---------- hourly ----------
+const SAMPLE_HOUR_CALLS = [
+  {time:"8:13:14", email:"shubham.patel1@pw.live", tt:"0:00:16"},
+  {time:"8:13:56", email:"shubham.burman@pw.live", tt:"0:01:43"},
+  {time:"8:15:20", email:"shubham.patel1@pw.live", tt:"0:07:54"},
+  {time:"8:19:25", email:"gulafshan.naaz@pw.live", tt:"0:11:46"},
+  {time:"8:20:04", email:"shubham.burman@pw.live", tt:"0:12:28"},
+  {time:"8:24:04", email:"shubham.patel1@pw.live", tt:"0:03:15"},
+  {time:"8:28:52", email:"shubham.patel1@pw.live", tt:"0:00:35"},
+  {time:"8:30:13", email:"shubham.patel1@pw.live", tt:"0:00:00"},
+  {time:"8:33:22", email:"shubham.burman@pw.live", tt:"0:03:14"},
+  {time:"8:41:33", email:"shubham.burman@pw.live", tt:"0:02:58"},
+];
+function renderSampleHour(){
+  const body = document.getElementById("sampleHourBody");
+  if(!body) return;
+  body.innerHTML = SAMPLE_HOUR_CALLS.map(c=>`<tr><td class="mono-cell">${c.time}</td><td>${EMAIL_TO_NAME[c.email]||c.email}</td><td class="mono-cell">${c.tt}</td></tr>`).join("");
+}
+
+async function loadHourly(){
+  const statusEl = document.getElementById("hourlyStatus");
+  statusEl.className = "loading"; statusEl.textContent = "Fetching Exotel & Ameyo dump — this can be a large sheet, please wait…";
+  try{
+    const grid = await fetchGviz(GIDS.exotel);
+    let hIdx = -1;
+    for(let i=0;i<grid.length;i++){
+      if(grid[i].some(c=>/time\s*stanp|time\s*stamp/i.test(String(c)))){ hIdx=i; break; }
+    }
+    if(hIdx===-1) throw new Error("header not found");
+    const header = grid[hIdx].map(h=>String(h).trim());
+    const tsCol = header.findIndex(h=>/time\s*stanp|time\s*stamp/i.test(h));
+    const userCol = header.findIndex(h=>/user\s*id/i.test(h));
+    const ttCol = header.findIndex(h=>/user talk time/i.test(h)) !== -1 ? header.findIndex(h=>/user talk time/i.test(h)) : header.findIndex(h=>/^talktime$/i.test(h));
+    const hourStats = Array.from({length:24}, ()=>({calls:0, connected:0, talktimeSec:0}));
+    let totalRows = 0, matchedRows = 0;
+    for(let i=hIdx+1;i<grid.length;i++){
+      const r = grid[i];
+      const ts = String(r[tsCol]||"");
+      const user = String(r[userCol]||"").trim().toLowerCase();
+      if(!ts || !user) continue;
+      totalRows++;
+      if(!TEAM_EMAILS.has(user)) continue;
+      const timePart = ts.split(" ")[1];
+      if(!timePart) continue;
+      const hour = parseInt(timePart.split(":")[0], 10);
+      if(isNaN(hour) || hour<0 || hour>23) continue;
+      matchedRows++;
+      const secs = ttToSeconds(String(r[ttCol]||"0:00:00"));
+      hourStats[hour].calls++;
+      hourStats[hour].talktimeSec += secs;
+      if(secs>0) hourStats[hour].connected++;
+    }
+    renderHourly(hourStats, totalRows, matchedRows);
+    statusEl.className = "pill live"; statusEl.textContent = `● live — ${matchedRows} Team Pravin calls found (of ${totalRows} total rows scanned)`;
+    hourlyLoaded = true;
+  }catch(e){
+    statusEl.className = "loading"; statusEl.textContent = "Couldn't load the Exotel dump live — check the tab is shared as 'Anyone with link can view', then try Load again.";
+  }
+}
+
+function renderHourly(hourStats, totalRows, matchedRows){
+  // restrict to hours with any activity, pad range
+  let activeHours = hourStats.map((h,i)=>({...h, hour:i})).filter(h=>h.calls>0);
+  if(!activeHours.length){ document.getElementById("hourlyChart").innerHTML = `<div class="empty">No matching call data found for Team Pravin in this dump.</div>`; return; }
+  const minH = Math.min(...activeHours.map(h=>h.hour)), maxH = Math.max(...activeHours.map(h=>h.hour));
+  const range = [];
+  for(let h=minH; h<=maxH; h++) range.push({...hourStats[h], hour:h});
+
+  const peakConnected = [...range].sort((a,b)=>b.connected-a.connected)[0];
+  const peakTalktime = [...range].sort((a,b)=>b.talktimeSec-a.talktimeSec)[0];
+  const totalConnected = range.reduce((a,r)=>a+r.connected,0);
+  const totalTalktime = range.reduce((a,r)=>a+r.talktimeSec,0);
+  document.getElementById("hourlyInsights").innerHTML = `
+    <div class="icard g"><div class="k">Peak Connect Hour</div><div class="v2">${peakConnected.hour}:00–${peakConnected.hour+1}:00<br><small>${peakConnected.connected} connected calls</small></div></div>
+    <div class="icard t"><div class="k">Peak Talktime Hour</div><div class="v2">${peakTalktime.hour}:00–${peakTalktime.hour+1}:00<br><small>${secToTT(peakTalktime.talktimeSec)} total</small></div></div>
+    <div class="icard"><div class="k">Total Connected (window)</div><div class="v2">${totalConnected}</div></div>
+    <div class="icard v"><div class="k">Total Talktime (window)</div><div class="v2">${secToTT(totalTalktime)}</div></div>`;
+
+  const w=900, barW=28, gap=10, padL=50, padR=30, padT=20, padB=40, h=280, chartH=h-padT-padB;
+  const maxTT = Math.max(...range.map(r=>r.talktimeSec/60))*1.2;
+  const maxConn = Math.max(...range.map(r=>r.connected))*1.2;
+  let bars = range.map((r,i)=>{
+    const x = padL + i*(barW+gap);
+    const bh = (r.talktimeSec/60/maxTT)*chartH;
+    return `<rect x="${x}" y="${padT+chartH-bh}" width="${barW}" height="${bh}" rx="3" fill="#F2A93B" opacity="0.85"/>
+      <text x="${x+barW/2}" y="${h-padB+16}" font-size="10" fill="#8C95AA" text-anchor="middle">${r.hour}:00</text>`;
+  }).join("");
+  const linePts = range.map((r,i)=>{ const x=padL+i*(barW+gap)+barW/2; const y=padT+chartH-(r.connected/maxConn)*chartH; return `${x},${y}`; }).join(" ");
+  const dots = range.map((r,i)=>{ const x=padL+i*(barW+gap)+barW/2; const y=padT+chartH-(r.connected/maxConn)*chartH; return `<circle cx="${x}" cy="${y}" r="3" fill="#4FD1D9"/>`; }).join("");
+  document.getElementById("hourlyChart").innerHTML = svg(w,h+20, bars+`<polyline points="${linePts}" fill="none" stroke="#4FD1D9" stroke-width="2"/>`+dots);
+
+  let tableHtml = `<thead><tr><th>Hour</th><th>Calls</th><th>Connected</th><th>Talktime</th><th>Avg Talktime/Call</th></tr></thead><tbody>`;
+  range.forEach(r=>{
+    tableHtml += `<tr><td class="mono-cell">${r.hour}:00–${r.hour+1}:00</td><td class="mono-cell">${r.calls}</td><td class="mono-cell">${r.connected}</td><td class="mono-cell">${secToTT(r.talktimeSec)}</td><td class="mono-cell">${r.calls?secToTT(r.talktimeSec/r.calls):"0:00:00"}</td></tr>`;
+  });
+  tableHtml += `</tbody>`;
+  document.getElementById("hourlyTable").innerHTML = tableHtml;
+}
+
+// ---------- followups ----------
+function loadFollowups(){
+  const body = document.getElementById("followupsBody");
+  const rows = Object.entries(BUNDLE.followup).map(([email,d])=>({name: BUNDLE.nameMap[email]||email, ...d}));
+  if(!rows.length){ body.innerHTML = `<div class="empty">No followup data available.</div>`; return; }
+  const maxOverdue = Math.max(...rows.map(r=>r.overdueTotal||0),1);
+  let html = `<div class="board"><table><thead><tr><th>Counselor</th><th>Overdue Hot</th><th>Overdue Warm</th><th>Total Overdues</th><th>Today's Followups</th><th>Upcoming Funnel</th></tr></thead><tbody>`;
+  rows.sort((a,b)=>(b.overdueTotal||0)-(a.overdueTotal||0)).forEach(r=>{
+    const pct = ((r.overdueTotal||0)/maxOverdue)*100;
+    html += `<tr><td class="name">${r.name}</td><td class="mono-cell">${r.overdueHot}</td><td class="mono-cell">${r.overdueWarm}</td>
+      <td><div class="bar-cell"><span class="mono-cell">${r.overdueTotal}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:linear-gradient(90deg,#3A1A17,#FF6B5D)"></div></div></div></td>
+      <td class="mono-cell">${r.todayTotal}</td><td class="mono-cell">${r.upTotal}</td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+  body.innerHTML = html;
+}
+
+// ---------- init / sync orchestration ----------
+function renderAllOverview(){
+  renderTicker(); renderInsights(); renderBoard();
+  renderAchChart(); renderZoneDonut(); renderTTChart(); renderCallsChart();
+  document.getElementById("dateLine").textContent = `Auto-refreshes every 5 min from Google Sheets · fallback snapshot: ${META.asOfDate}`;
+  const pill = document.getElementById("syncPill");
+  if(isLive){ pill.className="pill live"; pill.textContent="● live (bonus)"; } else { pill.className="pill cached"; pill.textContent="● synced snapshot"; }
+  document.getElementById("lastSync").textContent = "loaded: " + new Date().toLocaleTimeString();
+}
+
+document.querySelectorAll("thead th").forEach(th=>{
+  th.addEventListener("click", ()=>{ const k=th.dataset.k; if(k==="rank") return;
+    if(sortKey===k) sortDir*=-1; else { sortKey=k; sortDir=-1; } renderBoard(); });
+});
+
+document.querySelectorAll("#tabnav button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll("#tabnav button").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("view-"+btn.dataset.view).classList.add("active");
+    if(btn.dataset.view==="deepdive"){ renderDeepDive(); }
+    if(btn.dataset.view==="followups"){ loadFollowups(); }
+    if(btn.dataset.view==="hourly"){ renderSampleHour(); }
+  });
+});
+
+// ---------- generic date-wise tab live fetch (mirrors BUNDLE structure) ----------
+let isDeepDiveLive = false;
+
+async function fetchDateWiseTabLive(gid){
+  const grid = await fetchGviz(gid);
+  let hIdx = -1, assocCol = -1;
+  for(let i=0;i<grid.length;i++){
+    const idx = grid[i].findIndex(c => String(c).trim().toLowerCase() === "associate");
+    if(idx !== -1){ hIdx = i; assocCol = idx; break; }
+  }
+  if(hIdx === -1) throw new Error("no Associate header");
+  const header = grid[hIdx];
+  const dateColRe = /^\d{1,2}-[A-Za-z]+$/;
+  const dateCols = []; let firstDateIdx = -1;
+  header.forEach((h,i)=>{ const s=String(h).trim(); if(dateColRe.test(s)){ dateCols.push({idx:i,label:s}); if(firstDateIdx===-1) firstDateIdx=i; } });
+  const summaryCols = [];
+  header.forEach((h,i)=>{ const s=String(h).trim(); if(i>assocCol && i<firstDateIdx && s && s.toLowerCase()!=="associate") summaryCols.push({idx:i,label:s}); });
+  const isTimeTab = summaryCols.some(c=>/talktime/i.test(c.label));
+  const out = {};
+  for(let i=hIdx+1;i<grid.length;i++){
+    const r = grid[i];
+    const raw = String(r[assocCol]||"").trim();
+    if(!raw) continue;
+    const email = raw.toLowerCase();
+    if(!TEAM_EMAILS.has(email)) continue;
+    const rec = {};
+    summaryCols.forEach(c=>{
+      let v = r[c.idx];
+      if(!isTimeTab){ const n = parseFloat(String(v).replace("%","").replace(/,/g,"")); if(!isNaN(n) && String(v).trim()!=="" ) v = n; }
+      rec[c.label] = v;
+    });
+    rec.series = dateCols.map(c => isTimeTab ? ttToSeconds(String(r[c.idx]||"0:00:00")) : numOrZero(r[c.idx]));
+    out[email] = rec;
+  }
+  return { dateLabels: dateCols.map(c=>c.label), data: out };
+}
+
+async function refreshLiveBundle(){
+  const keys = ["talktime","connected","uniqueConnected","effective","fuConnected","freshConnected","freshEC"];
+  const gids = [GIDS.talktime,GIDS.connected,GIDS.uniqueConnected,GIDS.effective,GIDS.fuConnected,GIDS.freshConnected,GIDS.freshEC];
+  try{
+    const results = await Promise.all(gids.map(g=>fetchDateWiseTabLive(g)));
+    let ok = true;
+    results.forEach(r=>{ if(Object.keys(r.data).length < 5) ok = false; });
+    if(!ok) throw new Error("too few rows in one or more tabs");
+    const newBundle = { dates: results[0].dateLabels, nameMap: BUNDLE.nameMap, followup: BUNDLE.followup };
+    keys.forEach((k,i)=>{ newBundle[k] = results[i].data; });
+    BUNDLE = newBundle;
+    isDeepDiveLive = true;
+    return true;
+  }catch(e){ isDeepDiveLive = false; return false; }
+}
+
+async function refreshLiveFollowup(){
+  try{
+    const grid = await fetchGviz(GIDS.followupTracker);
+    let hIdx=-1, assocCol=-1;
+    for(let i=0;i<grid.length;i++){ const idx=grid[i].findIndex(c=>String(c).trim().toLowerCase()==="associate"); if(idx!==-1){ hIdx=i; assocCol=idx; break; } }
+    if(hIdx===-1) throw new Error("no header");
+    const newFollowup = {};
+    for(let i=hIdx+1;i<grid.length;i++){
+      const r = grid[i]; const raw = String(r[assocCol]||"").trim();
+      if(!raw || raw.toLowerCase()==="total") continue;
+      const email = raw.toLowerCase();
+      if(!TEAM_EMAILS.has(email)) continue;
+      newFollowup[email] = {
+        overdueHot: numOrZero(r[assocCol+1]), overdueWarm: numOrZero(r[assocCol+2]), overdueTotal: numOrZero(r[assocCol+3]),
+        todayHot: numOrZero(r[assocCol+4]), todayWarm: numOrZero(r[assocCol+5]), todayTotal: numOrZero(r[assocCol+6]),
+        upHot: numOrZero(r[assocCol+7]), upWarm: numOrZero(r[assocCol+8]), upTotal: numOrZero(r[assocCol+9]),
+      };
+    }
+    if(Object.keys(newFollowup).length < 5) throw new Error("too few rows");
+    BUNDLE.followup = newFollowup;
+    return true;
+  }catch(e){ return false; }
+}
+
+async function syncEverything(){
+  const pill = document.getElementById("syncPill");
+  pill.className="pill busy"; pill.textContent="● syncing…";
+  await syncIBAverage();
+  await Promise.all([refreshLiveBundle(), refreshLiveFollowup()]);
+  renderAllOverview();
+  syncConnectedTabs();
+  // re-render whichever tab is currently open so fresh data shows without a manual switch
+  const activeBtn = document.querySelector("#tabnav button.active");
+  if(activeBtn){
+    if(activeBtn.dataset.view==="deepdive") renderDeepDive();
+    if(activeBtn.dataset.view==="followups") loadFollowups();
+  }
+}
+
+// ---------- connect other tabs (Overall Summary, Funnel Summary not yet linked) ----------
+const OTHER_TABS = [
+  {key:"overall", label:"Overall Summary - TvsA", desc:"Target vs Achievement, team-wide"},
+  {key:"funnel", label:"Funnel Summary", desc:"Lead funnel stage-wise breakup"},
+];
+let TAB_GIDS = {};
+function extractGid(input){ if(!input) return null; const m=input.match(/gid=(\d+)/); if(m) return m[1]; if(/^\d+$/.test(input.trim())) return input.trim(); return null; }
+async function loadTabConfig(){ try{ const res=await window.storage.get("tab-gids-v2", true); TAB_GIDS = res?JSON.parse(res.value):{}; }catch(e){ TAB_GIDS={}; } }
+async function saveTabConfig(){ try{ await window.storage.set("tab-gids-v2", JSON.stringify(TAB_GIDS), true); }catch(e){} }
+function renderConnectGrid(){
+  document.getElementById("connectGrid").innerHTML = OTHER_TABS.map(t=>`
+    <div class="cx-card" id="cx-${t.key}"><h4>${t.label}</h4><p>${t.desc}</p>
+      <input type="text" id="inp-${t.key}" placeholder="Paste tab URL or gid…" value="${TAB_GIDS[t.key]||''}"/>
+      <button class="btn ghost sm" style="width:100%" onclick="connectTab('${t.key}')">Connect &amp; Sync</button>
+      <div class="status" id="status-${t.key}">${TAB_GIDS[t.key]?'Configured':'Not connected'}</div>
+      <div id="preview-${t.key}" style="margin-top:8px; max-height:130px; overflow:auto;"></div></div>`).join("");
+}
+async function connectTab(key){
+  const input = document.getElementById(`inp-${key}`).value; const gid = extractGid(input);
+  const statusEl = document.getElementById(`status-${key}`);
+  if(!gid){ statusEl.className="status err"; statusEl.textContent="Couldn't find a gid — paste the full tab URL."; return; }
+  TAB_GIDS[key]=gid; await saveTabConfig(); statusEl.textContent="Syncing…";
+  try{
+    const grid = await fetchGviz(gid);
+    let hIdx = grid.findIndex(r=>r.filter(c=>String(c).trim()!=="").length>=2);
+    if(hIdx===-1) throw new Error("empty");
+    const header = grid[hIdx]; const dataRows = grid.slice(hIdx+1,hIdx+8).filter(r=>r.some(c=>String(c).trim()!==""));
+    let html = "<table><thead><tr>"+header.map(h=>`<th>${String(h).trim()||"—"}</th>`).join("")+"</tr></thead><tbody>";
+    dataRows.forEach(r=>{ html+="<tr>"+r.map(c=>`<td>${c}</td>`).join("")+"</tr>"; });
+    html+="</tbody></table>";
+    document.getElementById(`preview-${key}`).innerHTML = html;
+    statusEl.className="status ok"; statusEl.textContent="● live — synced "+new Date().toLocaleTimeString();
+  }catch(e){ statusEl.className="status err"; statusEl.textContent="Couldn't read this tab."; }
+}
+async function syncConnectedTabs(){ for(const key of Object.keys(TAB_GIDS)){ if(TAB_GIDS[key]) connectTabSilent(key, TAB_GIDS[key]); } }
+async function connectTabSilent(key, gid){ document.getElementById(`inp-${key}`) && (document.getElementById(`inp-${key}`).value = gid); await connectTab(key); }
+
+(async function init(){
+  renderAllOverview();
+  renderCounselorPicker();
+  await loadTabConfig();
+  renderConnectGrid();
+  await syncEverything();
+  setInterval(()=>syncEverything(), 5*60*1000);
+})();
+</script>
+</body>
+</html>
